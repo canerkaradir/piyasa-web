@@ -17,7 +17,7 @@ export async function render(el, [kind = "NASDAQ"]) {
   el.innerHTML = `<h1>${title}</h1><div class="small muted">${desc}</div>
     <div id="br" class="small" style="margin:6px 0"></div>
     <input class="input" id="q" placeholder="Bu listede ara (ad ya da kod)" style="max-width:340px;margin:8px 0">
-    <table class="t"><thead><tr><th>#</th><th>Şirket</th><th class="hide-m">${bist ? "Son 1 ay" : "Bugün"}</th><th class="r">Fiyat</th><th class="r">Değişim</th><th class="r hide-m">Piyasa değeri</th><th class="hide-m">Sektör</th></tr></thead><tbody id="tb"></tbody></table>
+    <div class="tscroll"><table class="t"><thead><tr><th class="hide-m">#</th><th>Şirket</th><th class="hide-m">${bist ? "Son 1 ay" : "Bugün"}</th><th class="r">Fiyat</th><th class="r">Değişim</th><th class="r hide-m">Piyasa değeri</th><th class="hide-m">Sektör</th></tr></thead><tbody id="tb"></tbody></table></div>
     <div id="more" style="text-align:center;margin:12px"></div>
     ${disclaimer("TradingView, CNBC")}`;
   const tb = el.querySelector("#tb"), more = el.querySelector("#more");
@@ -38,7 +38,7 @@ export async function render(el, [kind = "NASDAQ"]) {
       const html = r.rows.map((x, i) => {
         const name = cleanName(x.description);
         return `<tr class="click" data-h="${bist ? "bist" : "hisse"}/${esc(x.name)}">
-          <td class="muted small">${offset + i + 1}</td>
+          <td class="muted small hide-m">${offset + i + 1}</td>
           <td><div class="row">${logo(tvLogo(x.logoid), name, 32)}<div style="min-width:0"><div class="ell" style="max-width:260px"><b>${esc(name)}</b></div><div class="tiny muted">${esc(x.name)}</div></div></div></td>
           <td class="hide-m" data-sp="${esc(x.name)}" style="width:120px"></td>
           <td class="r">${price(x.close)} ${cur}</td><td class="r">${pill(x.change)}</td>

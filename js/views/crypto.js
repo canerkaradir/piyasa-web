@@ -10,7 +10,7 @@ export async function render(el, [id]) {
   el.innerHTML = `<h1>Kripto</h1><div class="small muted">Piyasa değerine göre ilk 500 kripto para. Fiyatlar dolar cinsinden.</div>
     <div id="glob" class="small" style="margin:8px 0"></div>
     <input class="input" id="q" placeholder="Kripto ara (ad ya da sembol)" style="max-width:340px;margin:6px 0">
-    <table class="t"><thead><tr><th>#</th><th>Kripto</th><th class="r">Fiyat</th><th class="r">24 saat</th><th class="r hide-m">7 gün</th><th class="hide-m">Son 7 gün</th><th class="r hide-m">Piyasa değeri</th></tr></thead><tbody id="tb"><tr><td colspan="7"><div class="spinner"></div></td></tr></tbody></table>
+    <div class="tscroll"><table class="t"><thead><tr><th class="hide-m">#</th><th>Kripto</th><th class="r">Fiyat</th><th class="r">24 saat</th><th class="r hide-m">7 gün</th><th class="hide-m">Son 7 gün</th><th class="r hide-m">Piyasa değeri</th></tr></thead><tbody id="tb"><tr><td colspan="7"><div class="spinner"></div></td></tr></tbody></table></div>
     <div id="more" style="text-align:center;margin:12px"></div>
     ${disclaimer("CoinGecko")}`;
   const tb = el.querySelector("#tb"), more = el.querySelector("#more");
@@ -22,7 +22,7 @@ export async function render(el, [id]) {
     const t = q.toLowerCase();
     const l = all.filter((c) => !t || c.name.toLowerCase().includes(t) || c.symbol.toLowerCase().includes(t));
     tb.innerHTML = l.slice(0, shown).map((c) => `<tr class="click" data-h="kripto/${esc(c.id)}">
-      <td class="muted small">${c.market_cap_rank ?? ""}</td>
+      <td class="muted small hide-m">${c.market_cap_rank ?? ""}</td>
       <td><div class="row">${logo(c.image, c.name, 28)}<div><b>${esc(c.name)}</b> <span class="tiny muted">${esc(c.symbol.toUpperCase())}</span></div></div></td>
       <td class="r">${price(c.current_price)} $</td><td class="r">${pill(c.price_change_percentage_24h)}</td>
       <td class="r hide-m">${pill(c.price_change_percentage_7d_in_currency)}</td>
@@ -64,7 +64,7 @@ async function coinPage(el, id) {
       <div class="grow"><h1 style="margin:0">${esc(c.name)}</h1><div class="small muted">${sym} · Sıra #${c.market_cap_rank}</div></div>
       <div style="text-align:right"><div style="font-size:26px;font-weight:800">${price(c.current_price)} $</div>${pill(c.price_change_percentage_24h)}</div></div>
     <div class="row" style="margin:10px 0">${starBtn("coin", id, c.name)}</div>
-    <div class="grid g2" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)">
+    <div class="grid split">
       <div class="card" id="chart"></div><div class="card"><h3 style="margin-top:0">Nedir?</h3><div id="about" class="small"><div class="spinner"></div></div></div></div>
     <h2>Göstergeler</h2><div class="tiny muted">Bir satıra tıklayınca açıklaması açılır.</div><div class="card" id="mx"></div>
     ${disclaimer("CoinGecko, Binance")}`;

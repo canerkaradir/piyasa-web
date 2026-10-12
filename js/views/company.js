@@ -28,7 +28,7 @@ export async function render(el, [sym], key) {
     <div class="row wrap" style="margin:10px 0">${starBtn(bist ? "bist" : "us", sym, name)}
       ${bist ? "" : `<a class="btn ghost" href="#/karsilastir/${esc(sym)}">⇄ Karşılaştır</a><a class="btn ghost" href="#/neolurdu/${esc(sym)}">⏱ Ne olurdu?</a>`}
       <a class="btn ghost" target="_blank" rel="noopener" href="https://news.google.com/search?q=${encodeURIComponent(name + (bist ? " hisse" : " stock"))}&hl=tr&gl=TR&ceid=TR:tr">📰 Haberler</a></div>
-    <div class="grid g2" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)">
+    <div class="grid split">
       <div class="card" id="chart"></div>
       <div class="card"><h3 style="margin-top:0">Ne iş yapar?</h3><div id="about" class="small"><div class="spinner"></div></div></div>
     </div>

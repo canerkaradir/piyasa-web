@@ -4,8 +4,13 @@ import { go } from "../core.js";
 import { stockPicker, disclaimer } from "../widgets.js";
 
 async function btc() {
-  const a = await getJSON("https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1w&limit=1000");
-  return a.map((k) => ({ t: k[0], c: parseFloat(k[4]) }));
+  try {
+    const a = await getJSON("https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1w&limit=1000");
+    return a.map((k) => ({ t: k[0], c: parseFloat(k[4]) }));
+  } catch (e) {
+    const j = await getJSON("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=365");
+    return j.prices.map((p) => ({ t: p[0], c: p[1] }));
+  }
 }
 const BASE = [["S&P 500", () => bars(".SPX", "Tüm")], ["Nasdaq", () => bars(".IXIC", "Tüm")], ["Altın", () => bars("XAU=", "Tüm")], ["Bitcoin", btc]];
 
