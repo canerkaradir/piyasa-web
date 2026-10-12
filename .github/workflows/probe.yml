@@ -12,9 +12,16 @@ jobs:
           exec > >(tee /tmp/probe.txt) 2>&1
           B="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"
           O="https://canerkaradir.github.io"
-          curl -sS -A "$B" -H "Origin: $O" -H "Content-Type: text/plain;charset=UTF-8" -m 20 -D /tmp/h -X POST "https://scanner.tradingview.com/america/scan" -d '{"columns":["name","close"],"range":[0,2]}' | head -c 300; echo; grep -i "access-control-allow-origin" /tmp/h
-          curl -sS -A "$B" -H "Origin: $O" -m 20 -D - -o /dev/null "https://api.binance.com/api/v3/ping" | grep -i -E "^HTTP|access-control"
-          curl -sS -A "$B" -H "Origin: $O" -m 20 -D - -o /dev/null "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=nvidia&format=json&origin=*" | grep -i -E "^HTTP|access-control"
+          for u in "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=AAPL&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json" \
+            "https://ts-api.cnbc.com/harmony/app/bars/AAPL/1D/20260901000000/20261012000000/adjusted/EST5EDT.json" \
+            "https://api.coingecko.com/api/v3/global" \
+            "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=tr&dt=t&q=hello" \
+            "https://api.alternative.me/fng/?limit=2" \
+            "https://tr.wikipedia.org/api/rest_v1/page/summary/Nvidia" \
+            "https://images.financialmodelingprep.com/symbol/AAPL.png" \
+            "https://s3-symbol-logo.tradingview.com/apple--big.svg"; do
+            echo "== $u"; curl -sS -A "$B" -H "Origin: $O" -m 20 -D - -o /dev/null "$u" | grep -i -E "^HTTP|access-control-allow-origin"
+          done
       - name: save
         if: always()
         run: |
