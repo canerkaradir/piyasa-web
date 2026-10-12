@@ -1,0 +1,444 @@
+{
+ "rules": [
+  {
+   "tag": "Fed faiz indirimi",
+   "any": [
+    "rate cut",
+    "cuts rates",
+    "cut rates",
+    "cuts interest",
+    "lowers rates",
+    "faiz indirimi",
+    "faizi indirdi",
+    "faiz indirdi"
+   ],
+   "score": 3,
+   "note": "Faizlerin düşmesi şirketlerin borçlanma maliyetini azaltır; genelde hisseleri, özellikle Nasdaq'taki teknoloji şirketlerini destekler. Dolar zayıflama eğilimine girer, faiz getirmeyen altın ve gümüş için olumlu kabul edilir. Ama indirim 'ekonomi kötüye gidiyor' korkusuyla yapıldıysa hisseler düşebilir.",
+   "need": [
+    "fed",
+    "fomc",
+    "powell",
+    "federal reserve"
+   ]
+  },
+  {
+   "tag": "Fed faiz artırımı",
+   "any": [
+    "rate hike",
+    "raises rates",
+    "hikes rates",
+    "faiz artırımı",
+    "faizi artırdı",
+    "faiz artırdı"
+   ],
+   "score": 3,
+   "note": "Faiz artışı borçlanmayı pahalılaştırır; hisseler, özellikle büyüme beklentisiyle fiyatlanan teknoloji şirketleri baskı görür. Dolar güçlenir, altın ve gümüş genelde düşer.",
+   "need": [
+    "fed",
+    "fomc",
+    "powell",
+    "federal reserve"
+   ]
+  },
+  {
+   "tag": "Fed faizi sabit",
+   "any": [
+    "holds rates",
+    "keeps rates",
+    "leaves rates",
+    "rates unchanged",
+    "sabit bıraktı",
+    "faizi sabit"
+   ],
+   "score": 3,
+   "note": "Karar beklendiği gibiyse piyasa asıl olarak açıklamadaki ipuçlarına ve Powell'ın konuşmasına bakar. 'Yakında indirim' sinyali hisseleri ve altını destekler; 'faiz uzun süre yüksek kalacak' sinyali baskılar.",
+   "need": [
+    "fed",
+    "fomc",
+    "powell",
+    "federal reserve"
+   ]
+  },
+  {
+   "tag": "FOMC kararı",
+   "any": [
+    "fomc statement",
+    "issues fomc",
+    "monetary policy decision"
+   ],
+   "score": 3,
+   "note": "Fed'in faiz yolu bütün piyasanın pusulasıdır. Daha düşük faiz beklentisi genelde hisseleri ve altını destekler, doları zayıflatır. Daha yüksek faiz beklentisi ise tersini yapar.",
+   "need": []
+  },
+  {
+   "tag": "Fed",
+   "any": [
+    "fomc",
+    "powell",
+    "fed chair",
+    "fed minutes",
+    "fed tutanak"
+   ],
+   "score": 2,
+   "note": "Fed'in faiz yolu bütün piyasanın pusulasıdır. Daha düşük faiz beklentisi genelde hisseleri ve altını destekler, doları zayıflatır. Daha yüksek faiz beklentisi ise tersini yapar.",
+   "need": []
+  },
+  {
+   "tag": "Fed",
+   "any": [
+    "fed",
+    "federal reserve"
+   ],
+   "score": 2,
+   "note": "Fed'in faiz yolu bütün piyasanın pusulasıdır. Daha düşük faiz beklentisi genelde hisseleri ve altını destekler, doları zayıflatır. Daha yüksek faiz beklentisi ise tersini yapar.",
+   "need": []
+  },
+  {
+   "tag": "Yapay zekâ / çip politikası",
+   "any": [
+    "ai",
+    "artificial intelligence",
+    "chip",
+    "chips",
+    "semiconductor",
+    "nvidia",
+    "yapay zek",
+    "çip"
+   ],
+   "score": 3,
+   "note": "ABD hükümetinin yapay zekâ ve çip kararları Nvidia, AMD, Broadcom gibi şirketlerin satışlarını doğrudan etkiler. Yasak, ihracat kısıtlaması ya da sıkı düzenleme haberleri bu hisseleri ve Nasdaq'ı aşağı çekebilir; teşvik ve destek haberleri yukarı taşır.",
+   "need": [
+    "ban",
+    "bans",
+    "banned",
+    "executive order",
+    "regulat",
+    "export control",
+    "export curb",
+    "export restriction",
+    "restrict",
+    "subsid",
+    "incentive",
+    "chips act",
+    "white house",
+    "congress",
+    "senate",
+    "trump",
+    "commerce department",
+    "yasak",
+    "teşvik",
+    "düzenleme",
+    "kısıtlama",
+    "beyaz saray"
+   ]
+  },
+  {
+   "tag": "Dev şirket bilançosu",
+   "any": [
+    "earnings",
+    "quarterly results",
+    "guidance",
+    "revenue forecast",
+    "bilanço"
+   ],
+   "score": 3,
+   "note": "Dev şirketlerin endeks içindeki ağırlığı çok büyük; bilançoları Nasdaq ve S&P 500'ü doğrudan etkiler. Sonuç kadar 'gelecek dönem beklentisi' (guidance) de önemlidir: rakamlar iyi olsa bile beklenti zayıfsa hisse düşebilir.",
+   "need": [
+    "apple",
+    "nvidia",
+    "microsoft",
+    "amazon",
+    "alphabet",
+    "google",
+    "meta",
+    "tesla",
+    "broadcom",
+    "netflix",
+    "jpmorgan",
+    "berkshire",
+    "oracle"
+   ]
+  },
+  {
+   "tag": "Dev şirket",
+   "any": [
+    "apple",
+    "nvidia",
+    "microsoft",
+    "amazon",
+    "alphabet",
+    "google",
+    "meta",
+    "tesla",
+    "broadcom",
+    "netflix",
+    "jpmorgan",
+    "berkshire",
+    "oracle"
+   ],
+   "score": 2,
+   "note": "Bu şirket endekslerde çok büyük ağırlığa sahip; hissesindeki sert bir hareket Nasdaq ve S&P 500'ü tek başına sürükleyebilir.",
+   "need": []
+  },
+  {
+   "tag": "Enflasyon",
+   "any": [
+    "inflation",
+    "cpi",
+    "consumer price",
+    "pce",
+    "enflasyon",
+    "tüfe"
+   ],
+   "score": 2,
+   "note": "Enflasyon beklentiden yüksek gelirse Fed'in faiz indirme ihtimali azalır: hisseler (özellikle Nasdaq) baskı görebilir, dolar ve tahvil faizleri yükselir, altın kısa vadede düşebilir. Beklentiden düşük gelirse genelde tersi olur.",
+   "need": []
+  },
+  {
+   "tag": "İstihdam",
+   "any": [
+    "payrolls",
+    "jobs report",
+    "nonfarm",
+    "non-farm",
+    "unemployment",
+    "jobless claims",
+    "tarım dışı",
+    "istihdam",
+    "işsizlik"
+   ],
+   "score": 2,
+   "note": "İşsizlik beklentiden yüksek ya da yeni iş sayısı düşük gelirse Fed'in faiz indirme ihtimali artar; bu genelde hisseleri ve altını destekler, doları zayıflatır. Ama piyasa bunu ekonominin yavaşlaması olarak okursa hisseler düşebilir. Güçlü istihdam verisi tersini yapabilir.",
+   "need": []
+  },
+  {
+   "tag": "Büyüme",
+   "any": [
+    "gdp",
+    "recession",
+    "büyüme verisi",
+    "resesyon",
+    "durgunluk"
+   ],
+   "score": 2,
+   "note": "Ekonomi beklenenden hızlı büyürse şirket kârları için olumludur ama faiz indirimi ihtimali azalır. Resesyon korkusu hisseleri düşürür, güvenli liman olarak altını destekler.",
+   "need": []
+  },
+  {
+   "tag": "Gümrük vergileri",
+   "any": [
+    "tariff",
+    "trade war",
+    "trade deal",
+    "gümrük vergi",
+    "tarife",
+    "ticaret savaş"
+   ],
+   "score": 2,
+   "note": "Gümrük vergileri ithal malları pahalılaştırır, şirket kârlarını ve büyümeyi baskılar; hisseler genelde düşer, belirsizlik altını destekler. Ticaret anlaşması haberleri tersini yapar.",
+   "need": []
+  },
+  {
+   "tag": "Hükümet / borç tavanı",
+   "any": [
+    "government shutdown",
+    "shutdown",
+    "debt ceiling",
+    "hükümet kapan",
+    "borç tavanı"
+   ],
+   "score": 2,
+   "note": "Hükümet kapanması veya borç tavanı krizi belirsizlik yaratır; veri açıklamaları gecikebilir, hisseler dalgalanır, altın güvenli liman olarak talep görebilir.",
+   "need": []
+  },
+  {
+   "tag": "Jeopolitik",
+   "any": [
+    "iran",
+    "israel",
+    "russia",
+    "ukraine",
+    "taiwan",
+    "missile",
+    "airstrike",
+    "war",
+    "savaş",
+    "saldırı",
+    "israil",
+    "rusya"
+   ],
+   "score": 2,
+   "note": "Jeopolitik gerginlik riskten kaçışa yol açar: hisseler düşebilir, altın ve gümüş 'güvenli liman' olarak yükselir, petrol fiyatı artabilir. Gerilim azalınca tersi olur.",
+   "need": []
+  },
+  {
+   "tag": "Tahvil faizi",
+   "any": [
+    "treasury yield",
+    "bond yield",
+    "10-year",
+    "yields",
+    "tahvil faiz"
+   ],
+   "score": 2,
+   "note": "Tahvil faizi yükselirse borç almak pahalılaşır; hisseler (özellikle teknoloji) ve faiz getirmeyen altın baskı görür. Faiz düşerse tersi olur.",
+   "need": []
+  },
+  {
+   "tag": "Altın",
+   "any": [
+    "gold",
+    "bullion",
+    "altın",
+    "ons"
+   ],
+   "score": 2,
+   "note": "Altın faiz getirmez; bu yüzden faizler ve dolar düştüğünde ya da belirsizlik arttığında yükselme eğilimindedir. Merkez bankalarının altın alımları da fiyatı destekler.",
+   "need": []
+  },
+  {
+   "tag": "Gümüş",
+   "any": [
+    "silver",
+    "gümüş"
+   ],
+   "score": 2,
+   "note": "Gümüş hem değerli metal hem sanayi metalidir; altınla benzer yönde ama daha sert hareket eder. Güneş paneli ve elektronik gibi sanayi talebi de fiyatını etkiler.",
+   "need": []
+  },
+  {
+   "tag": "Büyük şirket bilançosu",
+   "any": [
+    "earnings",
+    "quarterly results",
+    "results",
+    "profit",
+    "revenue",
+    "guidance",
+    "bilanço",
+    "kâr",
+    "kar açıkladı"
+   ],
+   "score": 2,
+   "note": "Dev şirketlerin endeks içindeki ağırlığı büyük olduğu için bilançoları endeksi doğrudan etkiler. Sonuç kadar 'gelecek dönem beklentisi' (guidance) de önemlidir: rakamlar iyi olsa bile beklenti zayıfsa hisse düşebilir.",
+   "need": [
+    "apple",
+    "nvidia",
+    "microsoft",
+    "amazon",
+    "alphabet",
+    "google",
+    "meta",
+    "tesla",
+    "broadcom",
+    "netflix",
+    "jpmorgan",
+    "berkshire",
+    "oracle"
+   ]
+  },
+  {
+   "tag": "Bilanço",
+   "any": [
+    "earnings",
+    "quarterly results",
+    "guidance",
+    "bilanço"
+   ],
+   "score": 1,
+   "note": "Şirketin bilançosu kendi hissesini etkiler; sonuç kadar gelecek dönem beklentisi de önemlidir.",
+   "need": []
+  },
+  {
+   "tag": "Dolar",
+   "any": [
+    "dollar",
+    "dolar endeksi",
+    "dxy"
+   ],
+   "score": 1,
+   "note": "Dolar güçlenirse dolar cinsinden fiyatlanan altın ve gümüş diğer ülkeler için pahalılaşır, genelde düşer. Zayıf dolar altını destekler.",
+   "need": []
+  },
+  {
+   "tag": "Petrol",
+   "any": [
+    "oil price",
+    "crude",
+    "opec",
+    "petrol"
+   ],
+   "score": 1,
+   "note": "Petrol fiyatı yükselirse enflasyon beklentisi artar; bu faiz indirimlerini geciktirebilir. Enerji hisseleri kazanır, diğerleri baskı görebilir.",
+   "need": []
+  },
+  {
+   "tag": "Teknoloji / yapay zekâ",
+   "any": [
+    "chip",
+    "semiconductor",
+    "artificial intelligence",
+    "ai stocks",
+    "yapay zeka",
+    "yapay zekâ",
+    "çip"
+   ],
+   "score": 1,
+   "note": "Yapay zekâ ve çip şirketleri Nasdaq'ın en büyük ağırlıkları; bu sektördeki haberler Nasdaq'ı S&P 500 ve Dow'dan daha çok etkiler.",
+   "need": []
+  },
+  {
+   "tag": "Piyasa",
+   "any": [
+    "stocks",
+    "s&p 500",
+    "s&p",
+    "nasdaq",
+    "dow",
+    "wall street",
+    "stock market"
+   ],
+   "score": 1,
+   "note": "Piyasanın genel yönüne dair bir haber. Asıl önemli olan hareketin nedenidir: altındaki gelişmeye (faiz, veri, bilanço) bakmak gerekir.",
+   "need": []
+  }
+ ],
+ "exclude": [
+  "bist",
+  "borsa istanbul",
+  "tcmb",
+  "türkiye cumhuriyet merkez",
+  "dolar/tl",
+  "gram altın",
+  "çeyrek altın",
+  "kapalıçarşı",
+  "euro/tl"
+ ],
+ "strong": [
+  "plunge",
+  "soar",
+  "surge",
+  "tumble",
+  "crash",
+  "record high",
+  "all-time high",
+  "sell-off",
+  "selloff",
+  "rout",
+  "unexpected",
+  "surprise",
+  "biggest",
+  "hotter",
+  "cooler",
+  "than expected",
+  "jumps",
+  "slumps",
+  "beklentilerin",
+  "rekor",
+  "sert",
+  "çöküş",
+  "fırladı",
+  "çakıldı",
+  "beklenmedik"
+ ]
+}

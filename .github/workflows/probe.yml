@@ -1,0 +1,24 @@
+name: probe
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: probe
+        run: |
+          exec > >(tee /tmp/probe.txt) 2>&1
+          B="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"
+          O="https://canerkaradir.github.io"
+          curl -sS -A "$B" -H "Origin: $O" -H "Content-Type: text/plain;charset=UTF-8" -m 20 -D /tmp/h -X POST "https://scanner.tradingview.com/america/scan" -d '{"columns":["name","close"],"range":[0,2]}' | head -c 300; echo; grep -i "access-control-allow-origin" /tmp/h
+          curl -sS -A "$B" -H "Origin: $O" -m 20 -D - -o /dev/null "https://api.binance.com/api/v3/ping" | grep -i -E "^HTTP|access-control"
+          curl -sS -A "$B" -H "Origin: $O" -m 20 -D - -o /dev/null "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=nvidia&format=json&origin=*" | grep -i -E "^HTTP|access-control"
+      - name: save
+        if: always()
+        run: |
+          cd /tmp && rm -rf out && mkdir out && cd out && git init -q && git checkout -q -b ci-probe
+          cp /tmp/probe.txt probe.txt
+          git add . && git -c user.name=ci -c user.email=ci@local commit -qm "probe"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-probe
