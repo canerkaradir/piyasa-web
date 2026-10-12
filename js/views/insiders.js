@@ -29,7 +29,7 @@ export async function render(el) {
     <div class="card navy metric" onclick="this.classList.toggle('open')"><b>Yöneticiler kendi hisselerini alıyor</b><div class="small muted">Bu neden önemli? Tıklayın.</div><div class="mx" style="color:var(--text)">${WHY}</div></div>
     <div class="chips"><button class="chip" data-m="1e5">100 bin $+</button><button class="chip" data-m="1e6">1 milyon $+</button><button class="chip" data-m="1e7">10 milyon $+</button></div>
     <div id="list"><div class="spinner"></div></div>
-    ${disclaimer("Nasdaq / SEC Form 4 kayıtları; S&P 500, Nasdaq'ın en büyük 250 ve Russell 2000'in en büyük 250 şirketi ile "Gelecek vaat edenler" şirketleri 6 saatte bir taranır, son 30 gün gösterilir. \"Payı\": yöneticinin elindeki hisse miktarının bu alımla yüzde kaç arttığı")}`;
+    ${disclaimer("Nasdaq / SEC Form 4 kayıtları; S&P 500, Nasdaq'ın en büyük 250 ve Russell 2000'in en büyük 250 şirketi ile Gelecek vaat edenler şirketleri 6 saatte bir taranır, son 30 gün gösterilir. \"Payı\": yöneticinin elindeki hisse miktarının bu alımla yüzde kaç arttığı")}`;
   const box = el.querySelector("#list"), chips = el.querySelector(".chips");
   let all = [];
   try { all = await local("insiders.json"); } catch (e) { box.innerHTML = `<div class="err">Veri alınamadı.</div>`; return; }
