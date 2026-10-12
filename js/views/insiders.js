@@ -36,11 +36,11 @@ export async function render(el) {
   function draw() {
     chips.querySelectorAll(".chip").forEach((c) => c.classList.toggle("on", +c.dataset.m === min));
     const l = all.filter((b) => b.value >= min);
-    const cnt = {}; l.forEach((b) => (cnt[b.ticker] = (cnt[b.ticker] || 0) + 1));
+    const ppl = {}; l.forEach((b) => (ppl[b.ticker] ||= new Set()).add(b.insider)); const cnt = Object.fromEntries(Object.entries(ppl).map(([k, v]) => [k, v.size]));
     box.innerHTML = l.length ? `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">${l.map((b) => `<div class="card row" data-h="hisse/${esc(b.ticker)}" style="cursor:pointer;align-items:flex-start">
       ${logo(usLogo(b.ticker), b.company, 34)}<div class="grow"><div class="ell"><b>${esc(b.company)}</b></div>
       <div class="tiny muted ell">${esc(b.ticker)} · ${esc(b.insider)}</div><div class="tiny">${esc(role(b.title))}</div>
-      ${cnt[b.ticker] > 1 ? `<span class="badge" style="background:#1b7f3b">KÜME ALIM: ${cnt[b.ticker]} kayıt</span>` : ""}</div>
+      ${cnt[b.ticker] > 1 ? `<span class="badge" style="background:#1b7f3b">KÜME ALIM: ${cnt[b.ticker]} yönetici</span>` : ""}</div>
       <div style="text-align:right"><b class="up">${big(b.value)}</b><div class="tiny muted">${esc(b.qty)} hisse · ${esc(b.price)}</div><div class="tiny muted">Payı ${esc(b.own)} · ${esc(b.date)}</div></div></div>`).join("")}</div>`
       : `<div class="muted">Bu tutarın üstünde alım yok.</div>`;
     bindLinks(box);
