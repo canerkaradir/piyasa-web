@@ -25,7 +25,7 @@ export async function render(el) {
     <div class="card navy metric" onclick="this.classList.toggle('open')"><b>Yöneticiler kendi hisselerini alıyor</b><div class="small muted">Bu neden önemli? Tıklayın.</div><div class="mx" style="color:var(--text)">${WHY}</div></div>
     <div class="chips"><button class="chip" data-m="1e5">100 bin $+</button><button class="chip" data-m="1e6">1 milyon $+</button><button class="chip" data-m="1e7">10 milyon $+</button></div>
     <div id="list"><div class="spinner"></div></div>
-    ${disclaimer("OpenInsider (SEC Form 4 kayıtları). \"Payı\": yöneticinin elindeki hisse miktarının bu alımla yüzde kaç arttığı")}`;
+    ${disclaimer("SEC Form 4 kayıtları (son 30 gün). \"Payı\": yöneticinin elindeki hisse miktarının bu alımla yüzde kaç arttığı")}`;
   const box = el.querySelector("#list"), chips = el.querySelector(".chips");
   let all = [];
   try { all = await local("insiders.json"); } catch (e) { box.innerHTML = `<div class="err">Veri alınamadı.</div>`; return; }

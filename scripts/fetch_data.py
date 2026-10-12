@@ -215,26 +215,99 @@ def econ():
     save("econ.json", sorted(out, key=lambda x: x["date"]))
 
 
+SEC_UA = {"User-Agent": "PiyasaPusulasi/1.0 github.com/canerkaradir/piyasa-web", "Accept-Encoding": "identity"}
+
+
 def insiders():
+    """SEC Form 4 kayıtlarından açık piyasa alımları (işlem kodu P). Son 14 gün biriktirilir."""
+    path = os.path.join(DATA, "insiders.json")
     try:
-        h = get_v4("http://openinsider.com/latest-insider-purchases-25k")
+        old = json.load(open(path, encoding="utf-8"))
     except Exception:
-        h = get("http://openinsider.com/latest-insider-purchases-25k")
-    start = h.index('class="tinytable"')
-    body = h[h.index("<tbody>", start):h.index("</tbody>", start)]
-    out = []
-    for tr in body.split("<tr")[1:]:
-        tds = [html.unescape(re.sub(r"<[^>]+>", "", "<td" + x)).strip() for x in tr.split("<td")[1:]]
-        m = re.search(r">([^<>]+)</a></b>", tr)
-        if len(tds) < 13 or not m:
-            continue
+        old = []
+    seen_path = os.path.join(DATA, "_sec_seen.json")
+    try:
+        seen = json.load(open(seen_path))
+    except Exception:
+        seen = []
+    seen_set = set(seen)
+    ns = {"a": "http://www.w3.org/2005/Atom"}
+    accs = []
+    for start in (0, 100, 200, 300):
+        feed = get(f"https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=4&owner=include&count=100&start={start}&output=atom", SEC_UA)
+        root = ET.fromstring(feed.encode("utf-8"))
+        new_here = 0
+        for e in root.findall("a:entry", ns):
+            link = e.find("a:link", ns).get("href")
+            m = re.search(r"/data/(\d+)/(\d{18})/", link) or re.search(r"/(\d{10}-\d{2}-\d{6})-index", link)
+            acc = re.search(r"(\d{10}-\d{2}-\d{6})", link)
+            if not acc:
+                continue
+            acc = acc.group(1)
+            if acc in seen_set or any(acc == x[0] for x in accs):
+                continue
+            accs.append((acc, link))
+            new_here += 1
+        if new_here == 0:
+            break
+        time.sleep(0.3)
+    found = []
+    for acc, link in accs[:400]:
+        seen_set.add(acc); seen.append(acc)
         try:
-            val = float(tds[12].replace("+", "").replace("$", "").replace(",", ""))
-        except ValueError:
-            val = 0
-        out.append({"ticker": m.group(1).strip(), "company": tds[4], "insider": tds[5], "title": tds[6], "date": tds[2],
-                    "price": tds[8], "qty": tds[9], "own": tds[11], "value": val})
+            idx = get(link, SEC_UA)
+            xs = [x for x in re.findall(r'href="(/Archives/edgar/data/[^"]+\.xml)"', idx) if "/xsl" not in x]
+            if not xs:
+                continue
+            doc = ET.fromstring(get("https://www.sec.gov" + xs[0], SEC_UA).encode("utf-8"))
+        except Exception as ex:
+            print("sec", acc, ex, file=sys.stderr)
+            continue
+        time.sleep(0.12)
+        txt = lambda node, path: (node.findtext(path) or "").strip() if node is not None else ""
+        sym = txt(doc, "issuer/issuerTradingSymbol").upper()
+        if not sym or sym == "NONE":
+            continue
+        shares = value = 0.0
+        after = None
+        date = ""
+        for t in doc.findall("nonDerivativeTable/nonDerivativeTransaction"):
+            if txt(t, "transactionCoding/transactionCode") != "P":
+                continue
+            try:
+                q = float(txt(t, "transactionAmounts/transactionShares/value") or 0)
+                pr = float(txt(t, "transactionAmounts/transactionPricePerShare/value") or 0)
+            except ValueError:
+                continue
+            shares += q; value += q * pr
+            date = txt(t, "transactionDate/value") or date
+            try:
+                after = float(txt(t, "postTransactionAmounts/sharesOwnedFollowingTransaction/value"))
+            except ValueError:
+                pass
+        if value <= 0:
+            continue
+        own = doc.find("reportingOwner")
+        rel = own.find("reportingOwnerRelationship") if own is not None else None
+        roles = []
+        if rel is not None:
+            if txt(rel, "officerTitle"):
+                roles.append(txt(rel, "officerTitle"))
+            if txt(rel, "isDirector") in ("1", "true"):
+                roles.append("Dir")
+            if txt(rel, "isTenPercentOwner") in ("1", "true"):
+                roles.append("10%")
+        before = (after - shares) if after else None
+        found.append({"ticker": sym, "company": txt(doc, "issuer/issuerName"), "insider": txt(own, "reportingOwnerId/rptOwnerName"),
+                      "title": ", ".join(roles), "date": date, "price": f"${value / shares:,.2f}" if shares else "",
+                      "qty": f"+{shares:,.0f}", "own": (f"+{shares / before * 100:.0f}%" if before and before > 0 else "Yeni"),
+                      "value": round(value), "acc": acc})
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
+    merged = {x.get("acc", x["ticker"] + x["insider"] + x["date"]): x for x in old + found}
+    out = sorted((x for x in merged.values() if x["date"] >= cutoff), key=lambda x: (x["date"], x["value"]), reverse=True)
     save("insiders.json", out)
+    json.dump(seen[-5000:], open(seen_path, "w"))
+    print("SEC yeni kayıt:", len(accs), "alım:", len(found))
 
 
 def tv_scan(market, body):
