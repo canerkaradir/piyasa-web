@@ -11,12 +11,26 @@ UA = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chr
 RULES = json.load(open(os.path.join(ROOT, "scripts", "rules.json"), encoding="utf-8"))
 
 
-def get(url, headers=None, data=None, timeout=30):
+def get(url, headers=None, data=None, timeout=30, tries=3):
     h = {"User-Agent": UA, "Accept": "*/*"}
     h.update(headers or {})
-    req = urllib.request.Request(url, data=data, headers=h)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read().decode("utf-8", "replace").lstrip("﻿")
+    for i in range(tries):
+        try:
+            req = urllib.request.Request(url, data=data, headers=h)
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read().decode("utf-8", "replace").lstrip("\ufeff")
+        except Exception:
+            if i == tries - 1:
+                raise
+            time.sleep(2 + 3 * i)
+
+
+def get_v4(url, timeout=40):
+    """Yalnızca IPv4 ile indir (bazı siteler GitHub sunucularından IPv6'da erişilemiyor)."""
+    import subprocess
+    out = subprocess.run(["curl", "-4", "-sS", "-L", "--retry", "2", "-m", str(timeout), "-A", UA, url],
+                         capture_output=True, check=True)
+    return out.stdout.decode("utf-8", "replace")
 
 
 def save(name, obj):
@@ -203,7 +217,7 @@ def econ():
 
 def insiders():
     try:
-        h = get("https://openinsider.com/latest-insider-purchases-25k")
+        h = get_v4("http://openinsider.com/latest-insider-purchases-25k")
     except Exception:
         h = get("http://openinsider.com/latest-insider-purchases-25k")
     start = h.index('class="tinytable"')
@@ -231,20 +245,20 @@ def tv_scan(market, body):
 
 
 def bist():
-    """BIST 30 hisselerinin son 10 yıllık günlük kapanışları (günde bir kez yenilenir)."""
-    marker = os.path.join(DATA, "bist", "_updated.txt")
-    if os.path.exists(marker) and time.time() - os.path.getmtime(marker) < 20 * 3600:
-        try:
-            if time.time() - float(open(marker).read()) < 20 * 3600:
-                return
-        except Exception:
-            pass
+    """BIST 30 hisselerinin son 10 yıllık günlük kapanışları (her hisse günde bir kez yenilenir)."""
+    marker = os.path.join(DATA, "bist", "_updated.json")
+    try:
+        done = json.load(open(marker))
+    except Exception:
+        done = {}
     res = tv_scan("turkey", {"symbols": {"query": {"types": []}, "tickers": [], "groups": [{"type": "index", "values": ["BIST:XU030"]}]},
                              "columns": ["name"], "range": [0, 60]})
     codes = [r["d"][0] for r in res.get("data", [])]
     to = datetime.now()
     frm = to - timedelta(days=3653)
     for c in codes:
+        if time.time() - done.get(c, 0) < 20 * 3600 and os.path.exists(os.path.join(DATA, "bist", c + ".json")):
+            continue
         try:
             url = (f"https://www.isyatirim.com.tr/_layouts/15/Isyatirim.Website/Common/Data.aspx/HisseTekil?hisse={c}"
                    f"&startdate={frm:%d-%m-%Y}&enddate={to:%d-%m-%Y}")
@@ -253,12 +267,13 @@ def bist():
             for v in vals:
                 d = datetime.strptime(v["HGDG_TARIH"], "%d-%m-%Y")
                 pts.append([int(d.replace(tzinfo=timezone.utc).timestamp() * 1000), v["HGDG_KAPANIS"]])
-            save(f"bist/{c}.json", pts)
+            if pts:
+                save(f"bist/{c}.json", pts)
+                done[c] = time.time()
         except Exception as e:
             print("bist", c, e, file=sys.stderr)
         time.sleep(0.5)
-    os.makedirs(os.path.dirname(marker), exist_ok=True)
-    open(marker, "w").write(str(time.time()))
+    save("bist/_updated.json", done)
 
 
 if __name__ == "__main__":

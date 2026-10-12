@@ -1,0 +1,29 @@
+name: site kontrol
+on:
+  workflow_dispatch:
+    inputs:
+      routes:
+        description: "Sayfalar (| ile ayrılmış)"
+        required: false
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: kontrol
+        env:
+          ROUTES: ${{ github.event.inputs.routes }}
+        run: |
+          cd /tmp && npm init -y >/dev/null && npm i playwright@1.47.2 >/dev/null && npx playwright install --with-deps chromium >/dev/null
+          cp $GITHUB_WORKSPACE/scripts/check.mjs /tmp/check.mjs && node /tmp/check.mjs || true
+      - name: kaydet
+        if: always()
+        run: |
+          cd /tmp/out && git init -q && git checkout -q -b ci-check
+          git add . && git -c user.name=ci -c user.email=ci@local commit -qm "check"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-check
