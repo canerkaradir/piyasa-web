@@ -7,21 +7,9 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: probe
-        run: |
-          exec > >(tee /tmp/probe.txt) 2>&1
-          B="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"
-          O="https://canerkaradir.github.io"
-          for u in "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=AAPL&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json" \
-            "https://ts-api.cnbc.com/harmony/app/bars/AAPL/1D/20260901000000/20261012000000/adjusted/EST5EDT.json" \
-            "https://api.coingecko.com/api/v3/global" \
-            "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=tr&dt=t&q=hello" \
-            "https://api.alternative.me/fng/?limit=2" \
-            "https://tr.wikipedia.org/api/rest_v1/page/summary/Nvidia" \
-            "https://images.financialmodelingprep.com/symbol/AAPL.png" \
-            "https://s3-symbol-logo.tradingview.com/apple--big.svg"; do
-            echo "== $u"; curl -sS -A "$B" -H "Origin: $O" -m 20 -D - -o /dev/null "$u" | grep -i -E "^HTTP|access-control-allow-origin"
-          done
+        run: bash scripts/probe.sh > /tmp/probe.txt 2>&1 || true
       - name: save
         if: always()
         run: |

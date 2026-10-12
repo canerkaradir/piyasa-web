@@ -1,0 +1,6 @@
+B="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"
+tv() { curl -sS -A "$B" -m 20 -X POST "https://scanner.tradingview.com/$1/scan" -d "$2" | head -c 1500; echo; }
+tv america '{"filter":[{"left":"name","operation":"equal","right":"NVDA"}],"columns":["name","price_earnings_forward_fy","price_target_average","recommendation_mark","earnings_release_next_date","price_sales_current","Perf.3M","Perf.YTD","price_target_1y","number_of_employees","exchange","country","Recommend.All","earnings_per_share_forecast_next_fq","dividends_yield_current","float_shares_outstanding"],"range":[0,1]}'
+tv turkey '{"filter":[{"left":"name","operation":"equal","right":"THYAO"}],"columns":["name","close","price_earnings_ttm","market_cap_basic","logoid"],"range":[0,1]}'
+echo "== cnbc bist"; curl -sS -A "$B" -m 20 "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=THYAO.IS|THYAO-TR|.XU030|TRY%3D&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json" | head -c 1500; echo
+echo "== nasdaq cors"; curl -sS -A "$B" -H "Origin: https://canerkaradir.github.io" -m 20 -D - -o /dev/null "https://api.nasdaq.com/api/analyst/NVDA/earnings-forecast" | grep -i -E "^HTTP|access-control"
