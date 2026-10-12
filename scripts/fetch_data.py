@@ -215,7 +215,7 @@ def econ():
     save("econ.json", sorted(out, key=lambda x: x["date"]))
 
 
-SEC_UA = {"User-Agent": "PiyasaPusulasi/1.0 github.com/canerkaradir/piyasa-web", "Accept-Encoding": "identity"}
+SEC_UA = {"User-Agent": "PiyasaPusulasi veri-botu@users.noreply.github.com", "Accept-Encoding": "identity"}
 
 
 def insiders():
