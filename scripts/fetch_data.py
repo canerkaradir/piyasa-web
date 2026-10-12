@@ -215,99 +215,90 @@ def econ():
     save("econ.json", sorted(out, key=lambda x: x["date"]))
 
 
-SEC_UA = {"User-Agent": "PiyasaPusulasi veri-botu@users.noreply.github.com", "Accept-Encoding": "identity"}
+THEME_TICKERS = ["IONQ", "RGTI", "QBTS", "QUBT", "ARQQ", "LAES", "OKLO", "SMR", "NNE", "LEU", "LTBR", "BWXT", "RKLB", "ASTS", "LUNR",
+                 "RDW", "PL", "BKSY", "SOUN", "BBAI", "AI", "TEM", "RXRX", "SYM", "SERV", "RR", "PDYN", "JOBY", "ACHR", "EH", "RCAT",
+                 "UMAC", "CRSP", "NTLA", "BEAM", "EDIT", "DNA", "QS", "SLDP", "EOSE", "FLNC", "ENVX", "NVTS", "LWLG", "POET", "AEHR"]
+
+
+def _universe():
+    names = set(THEME_TICKERS)
+    for grp, n in (("SP:SPX", 520), ("TVC:RUT", 250)):
+        r = tv_scan("america", {"symbols": {"query": {"types": []}, "tickers": [], "groups": [{"type": "index", "values": [grp]}]},
+                                "columns": ["name"], "sort": {"sortBy": "market_cap_basic", "sortOrder": "desc"}, "range": [0, n]})
+        names.update(x["d"][0] for x in r.get("data", []))
+    r = tv_scan("america", {"filter": [{"left": "exchange", "operation": "equal", "right": "NASDAQ"}, {"left": "is_primary", "operation": "equal", "right": True},
+                                       {"left": "type", "operation": "in_range", "right": ["stock", "dr"]}],
+                            "columns": ["name"], "sort": {"sortBy": "market_cap_basic", "sortOrder": "desc"}, "range": [0, 250]})
+    names.update(x["d"][0] for x in r.get("data", []))
+    return sorted(names)
 
 
 def insiders():
-    """SEC Form 4 kayıtlarından açık piyasa alımları (işlem kodu P). Son 14 gün biriktirilir."""
+    """Büyük ABD şirketlerinde yöneticilerin açık piyasa alımları (Nasdaq, SEC Form 4). 6 saatte bir taranır."""
+    from concurrent.futures import ThreadPoolExecutor
     path = os.path.join(DATA, "insiders.json")
+    marker = os.path.join(DATA, "_insiders_at.txt")
+    try:
+        if time.time() - float(open(marker).read()) < 6 * 3600 and os.path.exists(path):
+            return
+    except Exception:
+        pass
     try:
         old = json.load(open(path, encoding="utf-8"))
     except Exception:
         old = []
-    seen_path = os.path.join(DATA, "_sec_seen.json")
-    try:
-        seen = json.load(open(seen_path))
-    except Exception:
-        seen = []
-    seen_set = set(seen)
-    ns = {"a": "http://www.w3.org/2005/Atom"}
-    accs = []
-    for start in (0, 100, 200, 300):
-        feed = get(f"https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=4&owner=include&count=100&start={start}&output=atom", SEC_UA)
-        root = ET.fromstring(feed.encode("utf-8"))
-        new_here = 0
-        for e in root.findall("a:entry", ns):
-            link = e.find("a:link", ns).get("href")
-            m = re.search(r"/data/(\d+)/(\d{18})/", link) or re.search(r"/(\d{10}-\d{2}-\d{6})-index", link)
-            acc = re.search(r"(\d{10}-\d{2}-\d{6})", link)
-            if not acc:
-                continue
-            acc = acc.group(1)
-            if acc in seen_set or any(acc == x[0] for x in accs):
-                continue
-            accs.append((acc, link))
-            new_here += 1
-        if new_here == 0:
-            break
-        time.sleep(0.3)
-    found = []
-    for acc, link in accs[:400]:
-        seen_set.add(acc); seen.append(acc)
+    names = _universe()
+    hdr = {"Accept": "application/json", "Origin": "https://www.nasdaq.com", "Referer": "https://www.nasdaq.com/"}
+    companies = {}
+
+    def one(sym):
         try:
-            idx = get(link, SEC_UA)
-            xs = [x for x in re.findall(r'href="(/Archives/edgar/data/[^"]+\.xml)"', idx) if "/xsl" not in x]
-            if not xs:
-                continue
-            doc = ET.fromstring(get("https://www.sec.gov" + xs[0], SEC_UA).encode("utf-8"))
-        except Exception as ex:
-            print("sec", acc, ex, file=sys.stderr)
-            continue
-        time.sleep(0.12)
-        txt = lambda node, path: (node.findtext(path) or "").strip() if node is not None else ""
-        sym = txt(doc, "issuer/issuerTradingSymbol").upper()
-        if not sym or sym == "NONE":
-            continue
-        shares = value = 0.0
-        after = None
-        date = ""
-        for t in doc.findall("nonDerivativeTable/nonDerivativeTransaction"):
-            if txt(t, "transactionCoding/transactionCode") != "P":
+            d = json.loads(get(f"https://api.nasdaq.com/api/company/{sym.replace('.', '%25sl%25')}/insider-trades?limit=20&type=buys&sortColumn=lastDate&sortOrder=DESC",
+                               hdr, timeout=20, tries=2))["data"]
+            rows = ((d or {}).get("transactionTable") or {}).get("table", {}).get("rows") or []
+            return sym, rows
+        except Exception:
+            return sym, []
+
+    with ThreadPoolExecutor(6) as ex:
+        res = list(ex.map(one, names))
+    cutoff = datetime.now() - timedelta(days=30)
+    found = []
+    for sym, rows in res:
+        for o in rows:
+            if "buy" not in (o.get("transactionType") or "").lower():
                 continue
             try:
-                q = float(txt(t, "transactionAmounts/transactionShares/value") or 0)
-                pr = float(txt(t, "transactionAmounts/transactionPricePerShare/value") or 0)
+                dt = datetime.strptime(o.get("lastDate", ""), "%m/%d/%Y")
             except ValueError:
                 continue
-            shares += q; value += q * pr
-            date = txt(t, "transactionDate/value") or date
-            try:
-                after = float(txt(t, "postTransactionAmounts/sharesOwnedFollowingTransaction/value"))
-            except ValueError:
-                pass
-        if value <= 0:
-            continue
-        own = doc.find("reportingOwner")
-        rel = own.find("reportingOwnerRelationship") if own is not None else None
-        roles = []
-        if rel is not None:
-            if txt(rel, "officerTitle"):
-                roles.append(txt(rel, "officerTitle"))
-            if txt(rel, "isDirector") in ("1", "true"):
-                roles.append("Dir")
-            if txt(rel, "isTenPercentOwner") in ("1", "true"):
-                roles.append("10%")
-        before = (after - shares) if after else None
-        found.append({"ticker": sym, "company": txt(doc, "issuer/issuerName"), "insider": txt(own, "reportingOwnerId/rptOwnerName"),
-                      "title": ", ".join(roles), "date": date, "price": f"${value / shares:,.2f}" if shares else "",
-                      "qty": f"+{shares:,.0f}", "own": (f"+{shares / before * 100:.0f}%" if before and before > 0 else "Yeni"),
-                      "value": round(value), "acc": acc})
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
-    merged = {x.get("acc", x["ticker"] + x["insider"] + x["date"]): x for x in old + found}
-    out = sorted((x for x in merged.values() if x["date"] >= cutoff), key=lambda x: (x["date"], x["value"]), reverse=True)
-    save("insiders.json", out)
-    json.dump(seen[-5000:], open(seen_path, "w"))
-    print("SEC yeni kayıt:", len(accs), "alım:", len(found))
+            if dt < cutoff:
+                continue
+            q = float((o.get("sharesTraded") or "0").replace(",", "") or 0)
+            pr = float((o.get("lastPrice") or "0").replace("$", "").replace(",", "") or 0)
+            held = float((o.get("sharesHeld") or "0").replace(",", "") or 0)
+            if q * pr <= 0:
+                continue
+            before = held - q
+            found.append({"ticker": sym, "company": companies.get(sym, sym), "insider": (o.get("insider") or "").title(),
+                          "title": o.get("relation") or "", "date": dt.strftime("%Y-%m-%d"), "price": f"${pr:,.2f}", "qty": f"+{q:,.0f}",
+                          "own": (f"+{q / before * 100:.0f}%" if before > 0 else "Yeni") if held > 0 else "—", "value": round(q * pr)})
+    # şirket adları
+    if found:
+        try:
+            r = tv_scan("america", {"filter": [{"left": "name", "operation": "in_range", "right": sorted({f["ticker"] for f in found})}],
+                                    "columns": ["name", "description"], "range": [0, 500]})
+            nm = {x["d"][0]: x["d"][1] for x in r.get("data", [])}
+            for f in found:
+                f["company"] = re.sub(r",?\s+(Inc\.?|Corporation|Corp\.?|Holdings?|Ltd\.?|plc|Class [A-C].*|Common Stock.*)$", "", nm.get(f["ticker"], f["ticker"]))
+        except Exception:
+            pass
+    if not found and old:
+        found = [x for x in old if x.get("date", "") >= cutoff.strftime("%Y-%m-%d")]
+    found.sort(key=lambda x: (x["date"], x["value"]), reverse=True)
+    save("insiders.json", found)
+    open(marker, "w").write(str(time.time()))
+    print("içeriden: taranan", len(names), "alım", len(found))
 
 
 def tv_scan(market, body):
