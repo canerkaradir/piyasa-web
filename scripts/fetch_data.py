@@ -301,6 +301,50 @@ def insiders():
     print("içeriden: taranan", len(names), "alım", len(found))
 
 
+def surprises():
+    """ABD şirketlerinin son 4 çeyrek kâr beklentisi / gerçekleşen tablosu (Nasdaq). Günde bir kez."""
+    from concurrent.futures import ThreadPoolExecutor
+    path = os.path.join(DATA, "surprises.json")
+    marker = os.path.join(DATA, "_surprises_at.txt")
+    try:
+        if time.time() - float(open(marker).read()) < 20 * 3600 and os.path.exists(path):
+            return
+    except Exception:
+        pass
+    names = _universe()
+    hdr = {"Accept": "application/json", "Origin": "https://www.nasdaq.com", "Referer": "https://www.nasdaq.com/"}
+
+    def one(sym):
+        try:
+            d = json.loads(get(f"https://api.nasdaq.com/api/company/{sym}/earnings-surprise", hdr, timeout=20, tries=2))["data"]
+            rows = ((d or {}).get("earningsSurpriseTable") or {}).get("rows") or []
+            out = []
+            for o in rows[:4]:
+                def f(x):
+                    try:
+                        return float(str(x).replace(",", ""))
+                    except (TypeError, ValueError):
+                        return None
+                out.append([o.get("fiscalQtrEnd"), o.get("dateReported"), f(o.get("eps")), f(o.get("consensusForecast")), f(o.get("percentageSurprise"))])
+            return sym, out
+        except Exception:
+            return sym, None
+
+    try:
+        old = json.load(open(path, encoding="utf-8"))
+    except Exception:
+        old = {}
+    with ThreadPoolExecutor(6) as ex:
+        res = list(ex.map(one, names))
+    ok = 0
+    for sym, rows in res:
+        if rows:
+            old[sym] = rows; ok += 1
+    save("surprises.json", old)
+    open(marker, "w").write(str(time.time()))
+    print("beklenti tabloları:", ok, "/", len(names))
+
+
 def tv_scan(market, body):
     req = urllib.request.Request(f"https://scanner.tradingview.com/{market}/scan", data=json.dumps(body).encode(),
                                  headers={"User-Agent": UA, "Content-Type": "application/json"})
@@ -309,14 +353,14 @@ def tv_scan(market, body):
 
 
 def bist():
-    """BIST 30 hisselerinin son 10 yıllık günlük kapanışları (her hisse günde bir kez yenilenir)."""
+    """BIST 100 hisselerinin son 10 yıllık günlük kapanışları (her hisse günde bir kez yenilenir)."""
     marker = os.path.join(DATA, "bist", "_updated.json")
     try:
         done = json.load(open(marker))
     except Exception:
         done = {}
-    res = tv_scan("turkey", {"symbols": {"query": {"types": []}, "tickers": [], "groups": [{"type": "index", "values": ["BIST:XU030"]}]},
-                             "columns": ["name"], "range": [0, 60]})
+    res = tv_scan("turkey", {"symbols": {"query": {"types": []}, "tickers": [], "groups": [{"type": "index", "values": ["BIST:XU100"]}]},
+                             "columns": ["name"], "range": [0, 120]})
     codes = [r["d"][0] for r in res.get("data", [])]
     to = datetime.now()
     frm = to - timedelta(days=3653)
@@ -347,6 +391,7 @@ if __name__ == "__main__":
     step("ekonomik takvim", econ)
     step("içeriden alımlar", insiders)
     step("BIST geçmişi", bist)
+    step("beklenti tabloları", surprises)
     # çeviri önbelleği büyümesin
     if len(TR) > 4000:
         TR = dict(list(TR.items())[-2500:])
