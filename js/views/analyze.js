@@ -185,15 +185,18 @@ function barChart(labels, values, cur) {
   const real = vals.filter((v) => v != null);
   if (real.length < 2) return `<div class="small muted">Yeterli veri yok.</div>`;
   const mx = Math.max(0, ...real), mn = Math.min(0, ...real), span = mx - mn || 1;
+  const top = Math.max(...real.map(Math.abs));
+  const [div, unit] = top >= 1e12 ? [1e12, "trilyon"] : top >= 1e9 ? [1e9, "milyar"] : top >= 1e6 ? [1e6, "milyon"] : [1, ""];
   const H = 130, W = 100 / vals.length;
   const zero = (mx / span) * H;
-  const short = (v) => { const a = Math.abs(v), s = v < 0 ? "−" : ""; return a >= 1e12 ? s + f1(a / 1e12) + "T" : a >= 1e9 ? s + f1(a / 1e9) + "Mr" : a >= 1e6 ? s + Math.round(a / 1e6) + "M" : s + Math.round(a); };
-  return `<div style="display:flex;gap:4px">${vals.map((v) => `<div class="tiny muted" style="flex:1;text-align:center;white-space:nowrap;overflow:hidden">${v == null ? "" : short(v)}</div>`).join("")}</div>
+  const short = (v) => { const x = v / div; return (x < 0 ? "−" : "") + (Math.abs(x) >= 100 ? Math.round(Math.abs(x)) : f1(Math.abs(x))); };
+  return `<div class="tiny muted" style="margin:2px 0 4px">Rakamlar: ${unit ? unit + " " : ""}${cur || ""}</div>
+    <div style="display:flex;gap:2px">${vals.map((v) => `<div class="tiny" style="flex:1;text-align:center;white-space:nowrap;font-size:10px;color:var(--muted)">${v == null ? "" : short(v)}</div>`).join("")}</div>
     <svg width="100%" height="${H}" viewBox="0 0 100 ${H}" preserveAspectRatio="none" style="display:block">
     ${vals.map((v, i) => { if (v == null) return ""; const h = (Math.abs(v) / span) * H; const y = v >= 0 ? zero - h : zero;
       return `<rect x="${i * W + W * 0.12}" y="${y}" width="${W * 0.76}" height="${Math.max(h, 0.8)}" fill="${v < 0 ? "#c62828" : i === vals.length - 1 ? "#b8860b" : "#5b7fc7"}" rx="0.6"/>`; }).join("")}
     <line x1="0" x2="100" y1="${zero}" y2="${zero}" stroke="#8888" stroke-width="0.4"/></svg>
-    <div style="display:flex;gap:4px">${labels.map((l) => `<div class="tiny muted" style="flex:1;text-align:center;line-height:1.15">${esc(l)}</div>`).join("")}</div>`;
+    <div style="display:flex;gap:2px">${labels.map((l) => `<div class="tiny muted" style="flex:1;text-align:center;line-height:1.15">${esc(l)}</div>`).join("")}</div>`;
 }
 
 async function reportPage(el, mk, sym) {
@@ -283,7 +286,7 @@ async function reportPage(el, mk, sym) {
     const q8 = q.slice(0, 8).reverse();
     const lab = q8.map((x) => x.short);
     const card = (t, ex, labels, vals) => `<div class="card"><div class="row between"><b>${t}</b><span class="tiny" style="color:var(--accent);cursor:pointer" onclick="this.closest('.card').querySelector('.cx').classList.toggle('show')">Ne anlatıyor? ▼</span></div>
-      <div class="cx small">${ex}</div>${barChart(labels, vals)}</div>`;
+      <div class="cx small">${ex}</div>${barChart(labels, vals, isBist && unit === "tl" ? "₺" : "$")}</div>`;
     const u = isBist ? (unit === "usd" ? " ($)" : " (₺)") : "";
     el.querySelector("#qch").innerHTML =
       card("Gelir" + u, "Her çeyrekte yapılan toplam satış. Sağa doğru yükseliyorsa şirket büyüyor. Mevsimsel şirketlerde aynı aylardaki sütunları karşılaştırın.", lab, q8.map((x) => conv(x.revenue, x.rate))) +
