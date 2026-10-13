@@ -368,15 +368,23 @@ def bist():
         if time.time() - done.get(c, 0) < 20 * 3600 and os.path.exists(os.path.join(DATA, "bist", c + ".json")):
             continue
         try:
+            fpath = os.path.join(DATA, "bist", c + ".json")
+            try:
+                existing = json.load(open(fpath))
+            except Exception:
+                existing = []
+            start = frm
+            if len(existing) > 200:  # sadece son günleri indir, eskisine ekle
+                start = datetime.utcfromtimestamp(existing[-1][0] / 1000) - timedelta(days=10)
             url = (f"https://www.isyatirim.com.tr/_layouts/15/Isyatirim.Website/Common/Data.aspx/HisseTekil?hisse={c}"
-                   f"&startdate={frm:%d-%m-%Y}&enddate={to:%d-%m-%Y}")
-            vals = json.loads(get(url, timeout=90)).get("value") or []
-            pts = []
+                   f"&startdate={start:%d-%m-%Y}&enddate={to:%d-%m-%Y}")
+            vals = json.loads(get(url, timeout=90, tries=2)).get("value") or []
+            pts = {p[0]: p[1] for p in existing}
             for v in vals:
                 d = datetime.strptime(v["HGDG_TARIH"], "%d-%m-%Y")
-                pts.append([int(d.replace(tzinfo=timezone.utc).timestamp() * 1000), v["HGDG_KAPANIS"]])
+                pts[int(d.replace(tzinfo=timezone.utc).timestamp() * 1000)] = v["HGDG_KAPANIS"]
             if pts:
-                save(f"bist/{c}.json", pts)
+                save(f"bist/{c}.json", sorted([k, v] for k, v in pts.items()))
                 done[c] = time.time()
         except Exception as e:
             print("bist", c, e, file=sys.stderr)
