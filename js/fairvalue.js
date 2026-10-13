@@ -59,7 +59,7 @@ export function fairValue(m, isBist) {
   const low = vals[0], high = vals[vals.length - 1];
   const mid = vals.length % 2 ? vals[(vals.length - 1) / 2] : (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2;
   const lowB = Math.min(low, mid * 0.9), highB = Math.max(high, mid * 1.1);
-  const level = price < lowB ? 2 : price > highB ? 0 : 1;
+  const level = price < lowB * 0.95 ? 2 : price > highB * 1.05 ? 0 : 1;
   const diff = ((mid - price) / price) * 100;
   const verdict = level === 2 ? "Fiyat, tahminlerin altında: ucuz görünüyor" : level === 0 ? "Fiyat, tahminlerin üstünde: pahalı görünüyor" : "Fiyat, tahmin aralığının içinde: makul görünüyor";
   return { methods, low: lowB, high: highB, mid, diff, level, verdict, cur };
