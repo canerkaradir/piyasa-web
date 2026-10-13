@@ -11,10 +11,11 @@ concurrency:
 jobs:
   data:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Verileri topla
-        run: python3 scripts/fetch_data.py 2>&1 | tee /tmp/log.txt
+        run: python3 scripts/fetch_data.py light 2>&1 | tee /tmp/log.txt
       - name: Kaydet
         run: |
           git config user.name "veri-botu"
@@ -22,8 +23,7 @@ jobs:
           git add data
           if git diff --cached --quiet; then echo "değişiklik yok"; exit 0; fi
           git commit -qm "Veriler güncellendi"
-          git pull -q --rebase origin main || true
-          git push -q
+          for i in 1 2 3; do git pull -q --rebase origin main && git push -q && break; sleep 5; done; exit 0
       - name: Günlüğü kaydet
         if: always()
         run: |

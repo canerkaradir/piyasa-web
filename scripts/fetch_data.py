@@ -316,7 +316,7 @@ def surprises():
 
     def one(sym):
         try:
-            d = json.loads(get(f"https://api.nasdaq.com/api/company/{sym}/earnings-surprise", hdr, timeout=20, tries=2))["data"]
+            d = json.loads(get(f"https://api.nasdaq.com/api/company/{sym}/earnings-surprise", hdr, timeout=15, tries=1))["data"]
             rows = ((d or {}).get("earningsSurpriseTable") or {}).get("rows") or []
             out = []
             for o in rows[:4]:
@@ -364,7 +364,11 @@ def bist():
     codes = [r["d"][0] for r in res.get("data", [])]
     to = datetime.now()
     frm = to - timedelta(days=3653)
+    t0 = time.time()
     for c in codes:
+        if time.time() - t0 > 25 * 60:
+            print("bist: süre doldu, kalanlar sonraki çalışmada", file=sys.stderr)
+            break
         if time.time() - done.get(c, 0) < 20 * 3600 and os.path.exists(os.path.join(DATA, "bist", c + ".json")):
             continue
         try:
@@ -394,14 +398,18 @@ def bist():
 
 if __name__ == "__main__":
     os.makedirs(DATA, exist_ok=True)
-    step("haberler", news)
-    step("korku-açgözlülük", fng)
-    step("ekonomik takvim", econ)
-    step("içeriden alımlar", insiders)
-    step("BIST geçmişi", bist)
-    step("beklenti tabloları", surprises)
+    mode = sys.argv[1] if len(sys.argv) > 1 else "light"
+    if mode == "light":
+        step("haberler", news)
+        step("korku-açgözlülük", fng)
+        step("ekonomik takvim", econ)
+    else:
+        step("içeriden alımlar", insiders)
+        step("beklenti tabloları", surprises)
+        step("BIST geçmişi", bist)
     # çeviri önbelleği büyümesin
     if len(TR) > 4000:
         TR = dict(list(TR.items())[-2500:])
-    json.dump(TR, open(_tr_cache_path, "w", encoding="utf-8"), ensure_ascii=False)
-    save("updated.json", {"at": int(time.time() * 1000)})
+    if mode == "light":
+        json.dump(TR, open(_tr_cache_path, "w", encoding="utf-8"), ensure_ascii=False)
+        save("updated.json", {"at": int(time.time() * 1000)})
