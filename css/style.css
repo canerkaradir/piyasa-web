@@ -153,7 +153,7 @@ table.t td.r, table.t th.r { text-align: right; }
 
 /* grafik */
 .chart-wrap { position: relative; }
-canvas.chart { width: 100%; display: block; touch-action: pan-y; }
+canvas.chart { width: 100%; display: block; touch-action: pan-y; cursor: crosshair; user-select: none; }
 .chart-info { min-height: 40px; }
 
 /* gauge */

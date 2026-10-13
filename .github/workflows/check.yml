@@ -18,6 +18,7 @@ jobs:
       - name: kontrol
         env:
           ROUTES: ${{ github.event.inputs.routes }}
+          MEASURE: "1"
         run: |
           cd /tmp && npm init -y >/dev/null && npm i playwright@1.47.2 >/dev/null && npx playwright install --with-deps chromium >/dev/null
           cp $GITHUB_WORKSPACE/scripts/check.mjs /tmp/check.mjs && node /tmp/check.mjs || true

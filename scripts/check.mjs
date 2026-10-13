@@ -15,6 +15,14 @@ for (const [vw, tag] of [[{ width: 1300, height: 900 }, "d"], [{ width: 390, hei
   for (const r of tag === "m" ? routes.slice(0, 6) : routes) {
     await p.goto(base + "#/" + r, { waitUntil: "domcontentloaded" });
     await p.waitForTimeout(6000);
+    if (process.env.MEASURE && tag === "d") {
+      const c = await p.$("canvas.chart");
+      if (c) { const bb = await c.boundingBox(); await p.mouse.click(bb.x + bb.width * 0.2, bb.y + 100); await p.mouse.click(bb.x + bb.width * 0.7, bb.y + 100); await p.waitForTimeout(400); }
+    }
+    if (process.env.MEASURE && tag === "m") {
+      const c = await p.$("canvas.chart");
+      if (c) { const bb = await c.boundingBox(); await p.mouse.move(bb.x + bb.width * 0.1, bb.y + 100); await p.mouse.down(); for (let k = 1; k <= 10; k++) await p.mouse.move(bb.x + bb.width * (0.1 + 0.06 * k), bb.y + 100); await p.mouse.up(); await p.waitForTimeout(400); }
+    }
     const errs = await p.$$eval(".err", (e) => e.map((x) => x.textContent.trim()));
     if (errs.length) log.push(`[${tag}] UI-ERR #/${r}: ${errs.join(" | ")}`);
     await p.screenshot({ path: `out/${tag}_${(r || "home").replace(/[\/.]/g, "_")}.png`, fullPage: tag === "d" });

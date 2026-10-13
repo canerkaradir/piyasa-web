@@ -107,6 +107,18 @@ export function rangeChart(container, labels, initial, intraday, loader, opts = 
       ctx.strokeStyle = css("--accent"); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x(i), 0); ctx.lineTo(x(i), bottom); ctx.stroke();
       ctx.fillStyle = css("--accent"); ctx.beginPath(); ctx.arc(x(i), y(vals[i]), 4, 0, 7); ctx.fill();
     }
+    if (st.a != null && st.b != null && st.a !== st.b) {
+      const p = Math.min(st.a, st.b), q = Math.max(st.a, st.b), c = (vals[q] / vals[p] - 1) * 100;
+      const cc = c >= 0 ? "#1b7f3b" : "#c62828";
+      ctx.save(); ctx.setLineDash([6, 5]); ctx.strokeStyle = cc; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x(p), y(vals[p])); ctx.lineTo(x(q), y(vals[q])); ctx.stroke(); ctx.restore();
+      const txt = (c >= 0 ? "▲ " : "▼ ") + pct(c);
+      ctx.font = "bold 15px system-ui"; const tw = ctx.measureText(txt).width, bw = tw + 22, bh = 26;
+      const cx = Math.max(bw / 2, Math.min(right - bw / 2, (x(p) + x(q)) / 2));
+      ctx.fillStyle = cc; ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(cx - bw / 2, 4, bw, bh, 13); else ctx.rect(cx - bw / 2, 4, bw, bh);
+      ctx.fill(); ctx.fillStyle = "#fff"; ctx.fillText(txt, cx - tw / 2, 22); ctx.font = "11px system-ui";
+    }
     if (st.hover != null) {
       ctx.strokeStyle = "#8888"; ctx.beginPath(); ctx.moveTo(x(st.hover), 0); ctx.lineTo(x(st.hover), bottom); ctx.stroke();
       ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x(st.hover), y(vals[st.hover]), 4, 0, 7); ctx.fill();
@@ -125,16 +137,16 @@ export function rangeChart(container, labels, initial, intraday, loader, opts = 
       const c = (b[q].c / b[p].c - 1) * 100;
       info.innerHTML = `<div class="row wrap"><span class="small">İki nokta arası:</span> <b class="${c >= 0 ? "up" : "down"}" style="font-size:18px">${pct(c)}</b>
         <span class="small muted">${fmtDate(b[p].t)}: ${price(b[p].c)} → ${fmtDate(b[q].t)}: ${price(b[q].c)}</span></div>
-        <div class="tiny muted">Yeni ölçüm için tekrar tıklayın.</div>`;
+        <div class="tiny muted">Yeni ölçüm için tekrar tıklayın ya da kaydırın.</div>`;
     } else if (st.a != null) {
       info.innerHTML = `<div><b>${price(b[st.a].c)}</b> <span class="small muted">${fmtDate(b[st.a].t)}</span></div><div class="tiny" style="color:var(--accent)">Farkı görmek için ikinci noktaya tıklayın.</div>`;
     } else if (st.hover != null) {
-      info.innerHTML = `<div><b>${price(b[st.hover].c)}</b> <span class="small muted">${fmtDate(b[st.hover].t)} · başlangıca göre ${pct((b[st.hover].c / f - 1) * 100)}</span></div><div class="tiny muted">İki noktaya tıklayarak aradaki değişimi ölçebilirsiniz.</div>`;
+      info.innerHTML = `<div><b>${price(b[st.hover].c)}</b> <span class="small muted">${fmtDate(b[st.hover].t)} · başlangıca göre ${pct((b[st.hover].c / f - 1) * 100)}</span></div><div class="small" style="color:var(--accent)">📏 İki noktaya tıklayın ya da basılı tutup sağa-sola kaydırın: aradaki yükseliş/düşüş yüzdesi görünür.</div>`;
     } else {
       const c = (l / f - 1) * 100;
       info.innerHTML = `<div class="row wrap"><span class="small">Bu aralıkta:</span> <b class="${c >= 0 ? "up" : "down"}">${pct(c)}</b>
         <span class="small muted">en yüksek ${price(Math.max(...b.map((x) => x.c)))} · en düşük ${price(Math.min(...b.map((x) => x.c)))}</span></div>
-        <div class="tiny muted">İki noktaya tıklayarak aradaki değişimi ölçebilirsiniz.</div>`;
+        <div class="small" style="color:var(--accent)">📏 İki noktaya tıklayın ya da basılı tutup sağa-sola kaydırın: aradaki yükseliş/düşüş yüzdesi görünür.</div>`;
     }
   }
 
@@ -156,13 +168,24 @@ export function rangeChart(container, labels, initial, intraday, loader, opts = 
     const right = r.width - 52;
     return Math.max(0, Math.min(st.bars.length - 1, Math.round(((ev.clientX - r.left) / right) * (st.bars.length - 1))));
   }
-  cv.addEventListener("click", (ev) => {
+  // Dokun/tıkla: iki nokta. Basılı tutup kaydır: başlangıçtan bırakılan yere kadar.
+  let down = null;
+  cv.addEventListener("pointerdown", (ev) => { if (!st.bars) return; down = { x: ev.clientX, i: idxAt(ev), moved: false }; });
+  cv.addEventListener("pointermove", (ev) => {
     if (!st.bars) return;
-    const i = idxAt(ev);
-    if (st.a == null || st.b != null) { st.a = i; st.b = null; } else st.b = i;
-    draw();
+    if (down) {
+      if (!down.moved && Math.abs(ev.clientX - down.x) > 8) { down.moved = true; st.a = down.i; try { cv.setPointerCapture(ev.pointerId); } catch (e) { /* yoksay */ } }
+      if (down.moved) { st.b = idxAt(ev); st.hover = null; draw(); }
+      return;
+    }
+    if (st.a != null) return; st.hover = idxAt(ev); draw();
   });
-  cv.addEventListener("mousemove", (ev) => { if (!st.bars || st.a != null) return; st.hover = idxAt(ev); draw(); });
+  cv.addEventListener("pointerup", (ev) => {
+    if (!st.bars || !down) return;
+    if (!down.moved) { const i = idxAt(ev); if (st.a == null || st.b != null) { st.a = i; st.b = null; } else st.b = i; st.hover = null; draw(); }
+    down = null;
+  });
+  cv.addEventListener("pointercancel", () => { down = null; });
   cv.addEventListener("mouseleave", () => { if (st.hover != null) { st.hover = null; draw(); } });
   container.querySelector(`#${id}-r`).addEventListener("click", (ev) => {
     const l = ev.target.dataset.l; if (!l) return;
