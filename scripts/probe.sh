@@ -1,3 +1,7 @@
-for ua in "Piyasa Pusulasi veri-botu@users.noreply.github.com" "Piyasa Pusulasi piyasa-web@github.io"; do
-  echo "== [$ua]"; curl -sS -A "$ua" -m 20 -o /tmp/x -w "%{http_code}\n" "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=4&owner=include&count=10&output=atom"
+B="Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/126 Mobile Safari/537.36"
+H=(-H "Accept: application/json" -H "Origin: https://www.nasdaq.com" -H "Referer: https://www.nasdaq.com/")
+for u in "https://api.nasdaq.com/api/company/AAPL/financials?frequency=2" "https://api.nasdaq.com/api/company/AAPL/financials?frequency=1" "https://api.nasdaq.com/api/company/AAPL/earnings-surprise" "https://api.nasdaq.com/api/analyst/AAPL/earnings-forecast"; do
+  echo "== $u"; curl -sS -A "$B" "${H[@]}" -m 25 "$u" | head -c 3500; echo
 done
+echo "== TV"
+curl -sS -A "$B" -m 20 -X POST "https://scanner.tradingview.com/america/scan" -d '{"filter":[{"left":"name","operation":"equal","right":"AAPL"}],"columns":["name","free_cash_flow_ttm","free_cash_flow_margin_ttm","current_ratio","quick_ratio","total_debt","cash_n_short_term_invest_fq","net_debt","total_revenue_yoy_growth_ttm","earnings_per_share_diluted_yoy_growth_ttm","operating_margin","return_on_invested_capital","piotroski_f_score_ttm","altman_z_score_ttm","price_earnings_growth_ttm","total_shares_outstanding_fundamental","revenue_fq_h","total_revenue_fq_h","net_income_fq_h","earnings_per_share_fq_h","total_revenue_fy_h","free_cash_flow_fy_h","gross_margin_fq_h","interest_coverage","dividend_payout_ratio_ttm","shares_buyback_ratio","total_revenue_qoq_growth_fq","total_revenue_yoy_growth_fq","net_income_yoy_growth_fq","earnings_per_share_diluted_yoy_growth_fq","enterprise_value_ebitda_ttm","sustainable_growth_rate"],"range":[0,1]}' | head -c 4000; echo
