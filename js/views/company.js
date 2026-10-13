@@ -3,6 +3,7 @@ import { tvByNames, DETAIL_COLS, bars, cnbcSym, RANGES, wikiAbout, local, cnbcQu
 import { rangeChart } from "../chart.js";
 import { starBtn, bindStars, every } from "../core.js";
 import { disclaimer } from "../widgets.js";
+import { fairValue, FAIR_COLS } from "../fairvalue.js";
 
 const US_EXTRA = ["price_target_average", "price_sales_current", "Perf.3M", "Perf.YTD", "number_of_employees", "exchange",
   "earnings_release_next_date", "earnings_release_next_time", "earnings_per_share_forecast_next_fq"];
@@ -13,7 +14,7 @@ export async function render(el, [sym], key) {
   el.innerHTML = `<div class="spinner"></div>`;
   let m;
   try {
-    const r = await tvByNames(bist ? "turkey" : "america", [sym], bist ? DETAIL_COLS : [...DETAIL_COLS, ...US_EXTRA]);
+    const r = await tvByNames(bist ? "turkey" : "america", [sym], bist ? [...DETAIL_COLS, ...FAIR_COLS] : [...DETAIL_COLS, ...US_EXTRA, ...FAIR_COLS]);
     m = r[sym];
   } catch (e) { /* aşağıda */ }
   if (!m) { el.innerHTML = `<div class="card err">${esc(sym)} için veri bulunamadı.</div>`; return; }
@@ -32,6 +33,7 @@ export async function render(el, [sym], key) {
       <div class="card" id="chart"></div>
       <div class="card"><h3 style="margin-top:0">Ne iş yapar?</h3><div id="about" class="small"><div class="spinner"></div></div></div>
     </div>
+    <div id="fair"></div>
     <div class="grid g2" style="margin-top:4px">
       <div><h2>Temel göstergeler</h2><div class="tiny muted">Bir satıra tıklayınca ne anlama geldiği açılır.</div><div class="card" id="mx"></div></div>
       <div><h2>Bakılması gereken noktalar</h2><div class="tiny muted">Rakamlardan çıkan gözlemler. Yorum değil, kontrol listesidir; karar sizindir.</div><div class="card" id="obs"></div>
@@ -39,6 +41,7 @@ export async function render(el, [sym], key) {
     </div>
     ${disclaimer(bist ? "TradingView, İş Yatırım, Vikipedi" : "TradingView, CNBC, Vikipedi")}`;
   bindStars(el);
+  el.querySelector("#fair").innerHTML = fairCard(fairValue(m, bist), m.close, bist, sym);
 
   // ---- grafik
   const chartEl = el.querySelector("#chart");
@@ -138,4 +141,36 @@ function observations(m, bist) {
   if (m.market_cap_basic && m.market_cap_basic < 2e9 && !bist) add("🔬", "Küçük ölçekli şirket: büyük şirketlere göre çok daha oynaktır ve haberlere sert tepki verir.");
   add("🧭", "Genel kontrol listesi: Şirket ne satıyor ve rakiplerinden farkı ne? Gelir yıldan yıla büyüyor mu? Kâr ediyor mu? Borcu yönetilebilir mi? Bu hisseyi portföyünüzün ne kadarı yapacaksınız?");
   return o.join("");
+}
+
+export function fairCard(fv, px, bist, sym) {
+  if (!fv) return `<h2>Adil değer tahmini</h2><div class="card small muted">Bu şirket için adil değer hesaplanamadı: analist hedefi yok, şirket zarar ediyor ve nakit üretmiyor. Henüz kâr etmeyen şirketlerin değeri büyük ölçüde gelecek beklentisine dayanır.</div>`;
+  const cur = fv.cur;
+  const lo = Math.min(fv.low, px) * 0.85, hi = Math.max(fv.high, px) * 1.12;
+  const pos = (v) => ((v - lo) / (hi - lo)) * 100;
+  const col = fv.level === 2 ? "var(--up)" : fv.level === 0 ? "var(--down)" : "#b8860b";
+  const d = (v) => ((v - px) / px) * 100;
+  return `<h2>Adil değer tahmini</h2>
+  <div class="card">
+    <div class="row wrap between"><div><div class="small muted">Tahminlerin ortası</div><div style="font-size:26px;font-weight:800">${price(fv.mid)} ${cur}</div>
+      <div class="small">Bugünkü fiyat ${price(px)} ${cur} → <b style="color:${d(fv.mid) >= 0 ? "var(--up)" : "var(--down)"}">${pct(d(fv.mid))}</b> ${d(fv.mid) >= 0 ? "potansiyel" : "fark"}</div></div>
+      <span class="badge" style="background:${col};font-size:12px;padding:5px 10px">${esc(fv.verdict)}</span></div>
+    <div style="position:relative;height:46px;margin:18px 4px 6px">
+      <div style="position:absolute;top:18px;left:0;right:0;height:10px;border-radius:5px;background:var(--line)"></div>
+      <div style="position:absolute;top:18px;height:10px;border-radius:5px;background:#2e7d3255;left:${pos(fv.low)}%;width:${pos(fv.high) - pos(fv.low)}%"></div>
+      ${fv.methods.map((x) => `<div title="${esc(x.name)}" style="position:absolute;top:15px;left:calc(${pos(x.value)}% - 2px);width:4px;height:16px;background:#2e7d32;border-radius:2px"></div>`).join("")}
+      <div style="position:absolute;top:0;left:${pos(px)}%;transform:translateX(-50%);text-align:center"><div class="tiny" style="font-weight:700;white-space:nowrap">Fiyat</div><div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--text);margin:0 auto"></div></div>
+      <div class="tiny muted" style="position:absolute;top:32px;left:${pos(fv.low)}%;transform:translateX(-50%);white-space:nowrap">${price(fv.low)}</div>
+      <div class="tiny muted" style="position:absolute;top:32px;left:${pos(fv.high)}%;transform:translateX(-50%);white-space:nowrap">${price(fv.high)}</div>
+    </div>
+    <div class="tiny muted" style="margin-bottom:6px">Yeşil bant: yöntemlerin verdiği tahmin aralığı. Çizgiler: her yöntemin sonucu.</div>
+    ${fv.methods.map((x) => metric(x.name, `${price(x.value)} ${cur}`, x.explain, `${x.detail ? x.detail + " · " : ""}bugünkü fiyata göre ${pct(d(x.value))}`)).join("")}
+    <div class="metric" onclick="this.classList.toggle('open')"><div class="small" style="color:var(--accent)">Adil değer ne demek, nasıl kullanılır? ▼</div>
+      <div class="mx">Adil değer, bir hissenin şirketin kazancı, nakdi ve geleceği düşünüldüğünde “ne etmesi gerektiğine” dair bir tahmindir. Tek bir doğru adil değer yoktur: her yöntem farklı varsayımlar yapar ve sonuçlar birbirinden çok farklı çıkabilir. Bu yüzden burada tek bir rakam yerine bir aralık gösterilir.<br><br>
+      • Fiyat aralığın çok altındaysa piyasa ya bir fırsatı kaçırıyor ya da rakamlarda görünmeyen bir sorun görüyor; nedenini araştırın.<br>
+      • Fiyat aralığın çok üstündeyse piyasa yöntemlerin varsaydığından çok daha hızlı büyüme bekliyor ya da hisse pahalı.<br>
+      • Kârı olmayan ya da çok hızlı büyüyen şirketlerde bu yöntemler zayıf kalır.<br><br>
+      Adil değer bir al-sat sinyali değildir; şirketin karnesiyle birlikte okunmalıdır. <a href="#/ders/7">Değerleme dersi ›</a></div></div>
+    <div class="tiny muted" style="margin-top:6px">Hesaplar otomatik ve basitleştirilmiştir; yatırım tavsiyesi değildir.${bist ? " BIST'te enflasyon nedeniyle nakit akışı (DCF) yöntemi kullanılmadı." : ""}</div>
+  </div>`;
 }

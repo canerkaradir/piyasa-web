@@ -17,7 +17,7 @@ function table(rows, cur, vol) {
 export async function render(el) {
   let kind = "SPX";
   el.innerHTML = `<h1>Yükselenler / düşenler</h1><div class="small muted">Bugün en çok yükselen, en çok düşen ve en çok işlem gören şirketler. Çok küçük şirketler (300 milyon $ altı) gösterilmez.</div>
-    <div class="chips"><button class="chip" data-k="SPX">S&P 500</button><button class="chip" data-k="NASDAQ">Nasdaq</button><button class="chip" data-k="RUT">Russell 2000</button><button class="chip" data-k="BIST30">BIST 30</button></div>
+    <div class="chips"><button class="chip" data-k="SPX">S&P 500</button><button class="chip" data-k="NASDAQ">Nasdaq</button><button class="chip" data-k="RUT">Russell 2000</button><button class="chip" data-k="BIST100">BIST 100</button></div>
     <div class="grid g3" id="g"></div>
     <div class="card small" style="margin-top:12px">Bir hisse bir günde %10'dan fazla hareket ediyorsa genelde arkasında bir haber vardır: bilanço, satın alma, ilaç onayı, analist notu, dava… Şirketin sayfasından haberlere bakarak nedenini öğrenebilirsiniz. Sert yükselişlerin bir kısmı sonraki günlerde geri verilir.</div>
     ${disclaimer("TradingView")}`;
@@ -25,7 +25,7 @@ export async function render(el) {
   async function load() {
     chips.querySelectorAll(".chip").forEach((c) => c.classList.toggle("on", c.dataset.k === kind));
     g.innerHTML = `<div class="spinner"></div>`;
-    const cur = kind === "BIST30" ? "₺" : "$", n = kind === "BIST30" ? 8 : 15, ex = kind === "BIST30" ? [] : [MIN];
+    const cur = kind === "BIST100" ? "₺" : "$", n = kind === "BIST100" ? 10 : 15, ex = kind === "BIST100" ? [] : [MIN];
     try {
       const [up, down, act] = await Promise.all([
         scanSorted(kind, "change", "desc", n, ex), scanSorted(kind, "change", "asc", n, ex),

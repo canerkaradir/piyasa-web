@@ -1,6 +1,7 @@
 // Şirket karnesi: veri toplama ve kurallarla değerlendirme (ABD + Borsa İstanbul)
 import { tvScan, local, bars } from "./api.js";
-import { big, f1, f2, peComment, sectorTr } from "./ui.js";
+import { big, f1, f2, peComment, sectorTr, price as fmtPrice } from "./ui.js";
+import { fairValue, FAIR_COLS } from "./fairvalue.js";
 
 const COLS = ["name", "description", "close", "change", "market_cap_basic", "sector", "industry", "logoid", "exchange",
   "price_earnings_ttm", "price_sales_current", "price_earnings_growth_ttm", "price_book_fq", "net_margin", "gross_margin", "operating_margin",
@@ -11,7 +12,7 @@ const COLS = ["name", "description", "close", "change", "market_cap_basic", "sec
   "gross_profit_fq_h", "total_revenue_fy_h", "net_income_fy_h", "free_cash_flow_fy_h", "fiscal_period_end_fq", "fiscal_period_end_fy",
   "earnings_release_next_date", "earnings_release_next_time", "earnings_per_share_forecast_next_fq", "revenue_forecast_next_fq",
   "earnings_per_share_fq", "earnings_per_share_forecast_fq", "revenue_fq", "revenue_forecast_fq", "earnings_release_date",
-  "fundamental_currency_code", "beta_1_year"];
+  "fundamental_currency_code", "beta_1_year", ...FAIR_COLS];
 
 const TR_M = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
 const EN_M = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -244,6 +245,9 @@ export function pillars(r) {
     rows.push(["PD/DD", f2(pb), "Piyasa değeri ÷ defterdeki özsermaye. 1'in altı şirketin muhasebe değerinden ucuza işlem gördüğünü gösterir. Bankalarda en çok bakılan orandır."]);
     rows.push(["Fiyat / Satış", f1(ps), "Piyasa değeri ÷ yıllık gelir. Kâr etmeyen şirketlerde kullanılır. 1–3 olağan, 10'un üstü çok yüksek büyüme beklentisi demektir."]);
     rows.push(["Piyasa değeri", B(m.market_cap_basic), "Hisse fiyatı × toplam hisse sayısı: şirketin borsadaki toplam değeri."]);
+    const fv = fairValue(m, isBist);
+    if (fv) rows.unshift(["Adil değer tahmini (ortası)", `${fmtPrice(fv.mid)} ${cur}`, "Analist hedefi, sektör F/K'sı" + (isBist ? "" : " ve nakit akışı (DCF)") + " yöntemlerinin verdiği tahminlerin ortası. Ayrıntısı şirket sayfasındaki “Adil değer tahmini” bölümündedir.",
+      `${fv.verdict}. Aralık ${fmtPrice(fv.low)}–${fmtPrice(fv.high)} ${cur}; bugünkü fiyat ${fmtPrice(m.close)} ${cur}.`]);
     out.push({ icon: "🏷️", title: "Fiyat (değerleme)", level, verdict, rows, lesson: 7, price: true });
   }
 

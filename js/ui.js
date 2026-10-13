@@ -120,6 +120,12 @@ const PE = [
   [["real estate"], "Gayrimenkul", 25, 40],
   [["basic materials", "non-energy minerals", "process industries"], "Hammadde", 14, 20],
 ];
+/** Sektörün tipik F/K aralığı: [Türkçe ad, alt, üst] ya da null */
+export function sectorPe(sector) {
+  const s = (sector || "").toLowerCase();
+  const info = PE.find((p) => p[0].includes(s));
+  return info ? [info[1], info[2], info[3]] : null;
+}
 export function peComment(pe, fpe, sector) {
   if (pe == null || pe <= 0) return "Şirket son 12 ayda zarar ettiği (ya da kârı çok düşük olduğu) için F/K anlamlı değil. Bu durumda fiyat/satış oranına bakılır.";
   const s = (sector || "").toLowerCase();

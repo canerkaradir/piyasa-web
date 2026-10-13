@@ -9,7 +9,7 @@ const INFO = {
   ".IXIC": ["Nasdaq Bileşik", "Nasdaq borsasındaki bütün şirketlerin endeksi. Apple, Microsoft, Nvidia gibi teknoloji devlerinin ağırlığı çok yüksek olduğu için teknoloji ve yapay zekâ haberlerine en duyarlı endekstir.", "liste/NASDAQ"],
   ".DJI": ["Dow Jones", "ABD'nin 30 büyük şirketinden oluşan en eski endeks. Fiyat ağırlıklı hesaplandığı için hissesi pahalı olan şirketin etkisi büyüktür; bu yüzden uzmanlar S&P 500'ü daha temsil edici bulur.", ""],
   ".RUT": ["Russell 2000", "ABD'nin 2000 küçük şirketinin endeksi. Bu şirketler daha çok borçla çalışır ve gelirlerinin çoğu ABD içinden gelir; bu yüzden faiz indirimlerinden ve ABD ekonomisinin gidişatından en çok etkilenen endekstir.", "liste/RUT"],
-  ".XU030": ["BIST 30", "Borsa İstanbul'un en büyük ve en çok işlem gören 30 şirketinin endeksi. TL bazlı olduğu için yüksek enflasyon döneminde rakamsal olarak yükselirken dolar bazında farklı bir tablo çıkabilir.", "liste/BIST30"],
+  ".XU030": ["BIST 30", "Borsa İstanbul'un en büyük ve en çok işlem gören 30 şirketinin endeksi. TL bazlı olduğu için yüksek enflasyon döneminde rakamsal olarak yükselirken dolar bazında farklı bir tablo çıkabilir.", "liste/BIST100"],
   ".VIX": ["VIX (korku endeksi)", "S&P 500 opsiyon fiyatlarından hesaplanan, önümüzdeki 30 gün için beklenen oynaklık. 12–20 arası sakin, 20–30 tedirgin, 30'un üstü panik dönemi sayılır. Piyasa düşerken VIX genelde sert yükselir.", ""],
   ".DXY": ["Dolar endeksi (DXY)", "Doların euro, yen, sterlin gibi 6 büyük para birimine karşı değeri. Dolar güçlenince altın ve gelişmekte olan ülke varlıkları genelde baskı görür.", ""],
   "TRY=": ["Dolar / TL", "1 doların kaç Türk lirası ettiği. Türkiye'de enflasyon yüksek olduğu için uzun vadede yükselme eğilimindedir.", ""],
