@@ -8,11 +8,12 @@ export const KINDS = {
   SPX: ["S&P 500", "ABD'nin en büyük 500 şirketi. Dünyada en çok takip edilen endekstir; 'piyasa' denince çoğu zaman bu kastedilir.", "$"],
   RUT: ["Russell 2000", "ABD'nin 2000 küçük ölçekli şirketi. Faiz indirimlerinden ve ABD iç ekonomisinden en çok etkilenen gruptur.", "$"],
   BIST30: ["BIST 30", "Borsa İstanbul'un en büyük ve en çok işlem gören 30 şirketi.", "₺"],
+  BIST100: ["BIST 100", "Borsa İstanbul'un en büyük 100 şirketi. Diğer BIST şirketlerini üstteki arama kutusundan bulabilirsiniz.", "₺"],
 };
 
 export async function render(el, [kind = "NASDAQ"]) {
   const [title, desc, cur] = KINDS[kind] || KINDS.NASDAQ;
-  const bist = kind === "BIST30";
+  const bist = kind.startsWith("BIST");
   let offset = 0, query = "", total = 0;
   el.innerHTML = `<h1>${title}</h1><div class="small muted">${desc}</div>
     <div id="br" class="small" style="margin:6px 0"></div>
@@ -33,7 +34,7 @@ export async function render(el, [kind = "NASDAQ"]) {
     if (reset) { offset = 0; tb.innerHTML = ""; }
     more.innerHTML = `<div class="spinner"></div>`;
     try {
-      const r = await listPage(kind, offset, bist ? 60 : 100, query);
+      const r = await listPage(kind, offset, bist ? 120 : 100, query);
       total = r.total;
       const html = r.rows.map((x, i) => {
         const name = cleanName(x.description);

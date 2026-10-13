@@ -4,10 +4,10 @@ import { tvSearch, coins, store, listPage } from "./api.js";
 import { leaveAll, go } from "./core.js";
 
 const MENU = [
-  ["", "Ana ekran"], ["haberler", "Haberler"], ["portfoy", "Portföyüm"],
+  ["", "Ana ekran"], ["inceleme", "🔍 Şirket İnceleme"], ["haberler", "Haberler"], ["portfoy", "Portföyüm"],
   ["#Piyasalar"],
   ["liste/NASDAQ", "Nasdaq"], ["liste/SPX", "S&P 500"], ["liste/RUT", "Russell 2000"], ["kripto", "Kripto"],
-  ["liste/BIST30", "BIST 30"], ["emtia", "Emtia (altın, gümüş)"], ["bilancolar", "Bilançolar"],
+  ["liste/BIST30", "BIST 30"], ["liste/BIST100", "BIST 100"], ["emtia", "Emtia (altın, gümüş)"], ["bilancolar", "Bilançolar"],
   ["#Keşfet"],
   ["gelecek", "Gelecek vaat edenler"], ["isi", "Isı haritası"], ["hareketliler", "Yükselenler / düşenler"],
   ["takvim", "Ekonomik takvim"], ["iceriden", "İçeriden alımlar"],
@@ -39,10 +39,14 @@ const ROUTES = {
   portfoy: () => import("./views/portfolio.js"),
   sozluk: () => import("./views/glossary.js"),
   ayarlar: () => import("./views/settings.js"),
+  inceleme: () => import("./views/analyze.js"),
+  karne: () => import("./views/analyze.js"),
+  ders: () => import("./views/analyze.js"),
+  test: () => import("./views/analyze.js"),
 };
 
 const side = document.getElementById("side");
-side.innerHTML = MENU.map(([r, t]) => (r.startsWith("#") ? `<div class="sec">${esc(r.slice(1))}</div>` : `<a href="#/${r}" data-r="${r}">${esc(t)}</a>`)).join("");
+side.innerHTML = MENU.map(([r, t]) => (r.startsWith("#") ? `<div class="sec">${esc(r.slice(1))}</div>` : `<a href="#/${r}" data-r="${r}"${r === "inceleme" ? ' class="hl"' : ""}>${esc(t)}</a>`)).join("");
 
 
 const view = document.getElementById("view");
@@ -52,7 +56,7 @@ async function route() {
   closeMenu();
   const parts = location.hash.replace(/^#\/?/, "").split("/").map(decodeURIComponent);
   const key = parts[0] || "";
-  const active = parts[0] === "liste" ? "liste/" + parts[1] : key;
+  const active = parts[0] === "liste" ? "liste/" + parts[1] : ["karne", "ders", "test"].includes(key) ? "inceleme" : key;
   document.querySelectorAll("[data-r]").forEach((a) => a.classList.toggle("on", a.dataset.r === active));
   const loader = ROUTES[key] || ROUTES[""];
   const my = ++seq;
@@ -105,12 +109,11 @@ async function search() {
   const [us, cs, bs] = await Promise.all([
     tvSearch("america", s, 6).catch(() => []),
     coins().then((l) => l.filter((c) => c.symbol.toLowerCase() === low || c.name.toLowerCase().includes(low)).slice(0, 4)).catch(() => []),
-    (bistNames ? Promise.resolve(bistNames) : listPage("BIST30", 0, 60).then((r) => (bistNames = r.rows))).then((l) =>
-      l.filter((r) => r.name.toLowerCase().includes(low) || (r.description || "").toLocaleLowerCase("tr").includes(low)).slice(0, 4)).catch(() => []),
+    tvSearch("turkey", s, 5).then((l) => l.filter((r) => r.exchange === "BIST")).catch(() => []),
   ]);
   const rows = [
     ...us.map((r) => ({ href: "hisse/" + r.name, img: tvLogo(r.logoid) || usLogo(r.name), n: cleanName(r.description), sub: `${r.name} · ${r.exchange}`, p: price(r.close) + " $" })),
-    ...bs.map((r) => ({ href: "bist/" + r.name, img: tvLogo(r.logoid), n: cleanName(r.description), sub: `${r.name} · BIST 30`, p: price(r.close) + " ₺" })),
+    ...bs.map((r) => ({ href: "bist/" + r.name, img: tvLogo(r.logoid), n: cleanName(r.description), sub: `${r.name} · Borsa İstanbul`, p: price(r.close) + " ₺" })),
     ...cs.map((c) => ({ href: "kripto/" + c.id, img: c.image, n: c.name, sub: c.symbol.toUpperCase() + " · Kripto", p: price(c.current_price) + " $" })),
   ];
   if (!rows.length) { sr.innerHTML = `<div class="sr muted">Sonuç yok.</div>`; return; }

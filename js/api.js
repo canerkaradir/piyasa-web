@@ -104,8 +104,8 @@ function scope(kind) {
   const body = { filter: [TYPE_FILTER] };
   if (kind === "NASDAQ") {
     body.filter.push({ left: "exchange", operation: "equal", right: "NASDAQ" }, { left: "is_primary", operation: "equal", right: true });
-  } else if (kind === "BIST30") {
-    body.symbols = { query: { types: [] }, tickers: [], groups: [{ type: "index", values: ["BIST:XU030"] }] };
+  } else if (kind === "BIST30" || kind === "BIST100") {
+    body.symbols = { query: { types: [] }, tickers: [], groups: [{ type: "index", values: [kind === "BIST30" ? "BIST:XU030" : "BIST:XU100"] }] };
   } else {
     body.symbols = { query: { types: [] }, tickers: [], groups: [{ type: "index", values: [kind === "SPX" ? "SP:SPX" : "TVC:RUT"] }] };
   }
@@ -119,7 +119,7 @@ export function listPage(kind, offset, limit = 100, query = "") {
   b.columns = LIST_COLS;
   b.sort = { sortBy: "market_cap_basic", sortOrder: "desc" };
   b.range = [offset, offset + limit];
-  return cached(`l:${kind}:${offset}:${query}`, 60_000, () => tvScan(kind === "BIST30" ? "turkey" : "america", b));
+  return cached(`l:${kind}:${offset}:${query}`, 60_000, () => tvScan(kind.startsWith("BIST") ? "turkey" : "america", b));
 }
 
 export async function breadth(kind) {
@@ -225,5 +225,5 @@ export function scanSorted(kind, sortBy, order = "desc", limit = 25, extra = [],
   b.columns = cols;
   b.sort = { sortBy, sortOrder: order };
   b.range = [0, limit];
-  return cached(`s:${kind}:${sortBy}:${order}:${limit}:${JSON.stringify(extra)}:${cols.length}`, 60_000, () => tvScan(kind === "BIST30" ? "turkey" : "america", b));
+  return cached(`s:${kind}:${sortBy}:${order}:${limit}:${JSON.stringify(extra)}:${cols.length}`, 60_000, () => tvScan(kind.startsWith("BIST") ? "turkey" : "america", b));
 }

@@ -25,7 +25,7 @@ export async function render(el, [sym], key) {
         <div class="small muted">${esc(sym)} · ${bist ? "Borsa İstanbul" : esc(m.exchange || "ABD")} · ${esc(sectorTr(m.sector))}${m.industry ? " · " + esc(m.industry) : ""}</div></div>
       <div style="text-align:right"><div style="font-size:26px;font-weight:800" id="px">${price(m.close)} ${cur}</div><div id="ch">${pill(m.change)}</div></div>
     </div>
-    <div class="row wrap" style="margin:10px 0">${starBtn(bist ? "bist" : "us", sym, name)}
+    <div class="row wrap" style="margin:10px 0"><a class="btn" href="#/karne/${bist ? "bist" : "us"}/${esc(sym)}">🔍 Şirket karnesi: sağlam mı?</a>${starBtn(bist ? "bist" : "us", sym, name)}
       ${bist ? "" : `<a class="btn ghost" href="#/karsilastir/${esc(sym)}">⇄ Karşılaştır</a><a class="btn ghost" href="#/neolurdu/${esc(sym)}">⏱ Ne olurdu?</a>`}
       <a class="btn ghost" target="_blank" rel="noopener" href="https://news.google.com/search?q=${encodeURIComponent(name + (bist ? " hisse" : " stock"))}&hl=tr&gl=TR&ceid=TR:tr">📰 Haberler</a></div>
     <div class="grid split">
