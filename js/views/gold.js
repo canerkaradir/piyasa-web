@@ -63,7 +63,7 @@ export async function render(el) {
     <div class="small" style="margin-top:8px">Fark: <b>${pts(diff)} puan</b> (${money(Math.abs(usd(la) - usd(f)))} ${diff < 0 ? "güncellenmiş tahminin altında" : "güncellenmiş tahminin üstünde"}). ${lo == null ? "" : inBand ? "Gerçek fiyat bandın içinde." : "Gerçek fiyat bandın dışında."}</div>`;
 
   const RG = [[183, "6 ay"], [274, "9 ay"], [365, "1 yıl"], [548, "1,5 yıl"], [730, "2 yıl"], [913, "2,5 yıl"], [1096, "3 yıl"],
-    [1461, "4 yıl"], [1826, "5 yıl"], [-1, "Zirveden beri"], [-2, "15 yıl"]];
+    [1461, "4 yıl"], [1826, "5 yıl"], [-2, "15 yıl"]];
   let span = 365, a = null, b = null, hover = null;
   const rg = el.querySelector("#rg"), cv = el.querySelector("#cv"), info = el.querySelector("#info");
   rg.innerHTML = RG.map(([d, l]) => `<button class="chip" data-d="${d}">${l}</button>`).join("");
@@ -73,8 +73,7 @@ export async function render(el) {
     const W = cv.clientWidth, H = 360, left = 46, right = W - 8, top = 10, bottom = H - 22;
     let start, end;
     if (span === -2) { start = 0; end = N - 1; }
-    else if (span === -1) { start = 0; end = Math.min(N - 1, lastDay + 120); }
-    else { start = Math.max(0, lastDay - Math.max(30, Math.round(span / 8))); end = Math.min(N - 1, lastDay + span); }
+    else { start = 0; end = Math.min(N - 1, lastDay + span); }
     const n = Math.max(1, end - start);
     let mn = Infinity, mx = -Infinity;
     for (let i = start; i <= end; i++) for (const v of [act[i], md.fc[i], md.raw[i], md.lo[i], md.hi[i]]) if (v != null) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
