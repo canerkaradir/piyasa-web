@@ -113,14 +113,25 @@ export async function render(el) {
       const fch = (usd(md.fc[q]) / usd(md.fc[p]) - 1) * 100;
       const g = act[p] != null && act[q] != null ? (usd(act[q]) / usd(act[p]) - 1) * 100 : null;
       info.innerHTML = `<div>${fmtD(p)} → ${fmtD(q)}</div><div>Tahmine göre değişim: <b>${pct(fch)}</b> (${money(usd(md.fc[p]))} → ${money(usd(md.fc[q]))})</div>
-        ${g != null ? `<div>Gerçekleşen değişim: <b class="${g >= 0 ? "up" : "down"}">${pct(g)}</b> (${money(usd(act[p]))} → ${money(usd(act[q]))})</div>` : ""}<div class="tiny muted">Yeni ölçüm için tekrar tıklayın.</div>`;
-    } else if (a != null) info.innerHTML = `<div class="tiny" style="color:var(--accent)">Farkı görmek için ikinci noktaya tıklayın.</div><div>${esc(at(a))}</div>`;
-    else if (hover != null) info.innerHTML = `<div>${esc(at(hover))}</div><div class="tiny muted">İki noktaya tıklayarak aradaki yüzde değişimi ölçebilirsiniz.</div>`;
-    else info.innerHTML = `<div class="tiny muted">İki noktaya tıklayarak aradaki yüzde değişimi ölçebilirsiniz.</div>`;
+        ${g != null ? `<div>Gerçekleşen değişim: <b class="${g >= 0 ? "up" : "down"}">${pct(g)}</b> (${money(usd(act[p]))} → ${money(usd(act[q]))})</div>` : ""}<div class="tiny muted">Fiyat için tıklayın; yeni ölçüm için basılı tutup sürükleyin.</div>`;
+    } else if (a != null) info.innerHTML = `<div>${esc(at(a))}</div><div class="tiny muted">İki nokta arasını ölçmek için basılı tutup sürükleyin.</div>`;
+    else if (hover != null) info.innerHTML = `<div>${esc(at(hover))}</div><div class="tiny muted">Tıklayın: o günün değerleri. Basılı tutup sürükleyin: iki nokta arası yüzde değişim.</div>`;
+    else info.innerHTML = `<div class="tiny muted">Tıklayın: o günün değerleri. Basılı tutup sürükleyin: iki nokta arası yüzde değişim.</div>`;
   }
   const idx = (ev) => { const g = geom(), r = cv.getBoundingClientRect(); return Math.max(0, Math.min(g.end, Math.round(((ev.clientX - r.left - g.left) / (g.right - g.left)) * g.end))); };
-  cv.onclick = (ev) => { const i = idx(ev); if (a == null || b != null) { a = i; b = null; } else b = i; draw(); };
-  cv.onmousemove = (ev) => { if (a != null && b == null) return; hover = idx(ev); draw(); };
+  let down = null;
+  cv.style.touchAction = "pan-y";
+  cv.onpointerdown = (ev) => { down = { x: ev.clientX, i: idx(ev), moved: false }; };
+  cv.onpointermove = (ev) => {
+    if (down) {
+      if (!down.moved && Math.abs(ev.clientX - down.x) > 8) { down.moved = true; a = down.i; try { cv.setPointerCapture(ev.pointerId); } catch (e) { /* yoksay */ } }
+      if (down.moved) { b = idx(ev); hover = null; draw(); }
+      return;
+    }
+    if (a != null) return; hover = idx(ev); draw();
+  };
+  cv.onpointerup = (ev) => { if (down && !down.moved) { a = idx(ev); b = null; hover = null; draw(); } down = null; };
+  cv.onpointercancel = () => { down = null; };
   cv.onmouseleave = () => { hover = null; draw(); };
   window.addEventListener("resize", draw); onLeave(() => window.removeEventListener("resize", draw));
   draw();

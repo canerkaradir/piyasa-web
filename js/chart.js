@@ -137,16 +137,16 @@ export function rangeChart(container, labels, initial, intraday, loader, opts = 
       const c = (b[q].c / b[p].c - 1) * 100;
       info.innerHTML = `<div class="row wrap"><span class="small">İki nokta arası:</span> <b class="${c >= 0 ? "up" : "down"}" style="font-size:18px">${pct(c)}</b>
         <span class="small muted">${fmtDate(b[p].t)}: ${price(b[p].c)} → ${fmtDate(b[q].t)}: ${price(b[q].c)}</span></div>
-        <div class="tiny muted">Yeni ölçüm için tekrar tıklayın ya da kaydırın.</div>`;
+        <div class="tiny muted">Fiyat için tıklayın; yeni ölçüm için basılı tutup sürükleyin.</div>`;
     } else if (st.a != null) {
-      info.innerHTML = `<div><b>${price(b[st.a].c)}</b> <span class="small muted">${fmtDate(b[st.a].t)}</span></div><div class="tiny" style="color:var(--accent)">Farkı görmek için ikinci noktaya tıklayın.</div>`;
+      info.innerHTML = `<div><b>${price(b[st.a].c)}</b> <span class="small muted">${fmtDate(b[st.a].t)}</span></div><div class="tiny muted">İki nokta arasını ölçmek için basılı tutup sürükleyin.</div>`;
     } else if (st.hover != null) {
-      info.innerHTML = `<div><b>${price(b[st.hover].c)}</b> <span class="small muted">${fmtDate(b[st.hover].t)} · başlangıca göre ${pct((b[st.hover].c / f - 1) * 100)}</span></div><div class="small" style="color:var(--accent)">📏 İki noktaya tıklayın ya da basılı tutup sağa-sola kaydırın: aradaki yükseliş/düşüş yüzdesi görünür.</div>`;
+      info.innerHTML = `<div><b>${price(b[st.hover].c)}</b> <span class="small muted">${fmtDate(b[st.hover].t)} · başlangıca göre ${pct((b[st.hover].c / f - 1) * 100)}</span></div><div class="small" style="color:var(--accent)">📏 Tıklayın: o noktanın fiyatı. Basılı tutup sürükleyin: iki nokta arası yükseliş/düşüş yüzdesi.</div>`;
     } else {
       const c = (l / f - 1) * 100;
       info.innerHTML = `<div class="row wrap"><span class="small">Bu aralıkta:</span> <b class="${c >= 0 ? "up" : "down"}">${pct(c)}</b>
         <span class="small muted">en yüksek ${price(Math.max(...b.map((x) => x.c)))} · en düşük ${price(Math.min(...b.map((x) => x.c)))}</span></div>
-        <div class="small" style="color:var(--accent)">📏 İki noktaya tıklayın ya da basılı tutup sağa-sola kaydırın: aradaki yükseliş/düşüş yüzdesi görünür.</div>`;
+        <div class="small" style="color:var(--accent)">📏 Tıklayın: o noktanın fiyatı. Basılı tutup sürükleyin: iki nokta arası yükseliş/düşüş yüzdesi.</div>`;
     }
   }
 
@@ -168,7 +168,7 @@ export function rangeChart(container, labels, initial, intraday, loader, opts = 
     const right = r.width - 52;
     return Math.max(0, Math.min(st.bars.length - 1, Math.round(((ev.clientX - r.left) / right) * (st.bars.length - 1))));
   }
-  // Dokun/tıkla: iki nokta. Basılı tutup kaydır: başlangıçtan bırakılan yere kadar.
+  // Dokun/tıkla: sadece o noktanın fiyatı. Basılı tutup kaydır: başlangıçtan bırakılan yere kadar ölçüm.
   let down = null;
   cv.addEventListener("pointerdown", (ev) => { if (!st.bars) return; down = { x: ev.clientX, i: idxAt(ev), moved: false }; });
   cv.addEventListener("pointermove", (ev) => {
@@ -182,7 +182,7 @@ export function rangeChart(container, labels, initial, intraday, loader, opts = 
   });
   cv.addEventListener("pointerup", (ev) => {
     if (!st.bars || !down) return;
-    if (!down.moved) { const i = idxAt(ev); if (st.a == null || st.b != null) { st.a = i; st.b = null; } else st.b = i; st.hover = null; draw(); }
+    if (!down.moved) { st.a = idxAt(ev); st.b = null; st.hover = null; draw(); }
     down = null;
   });
   cv.addEventListener("pointercancel", () => { down = null; });
