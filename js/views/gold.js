@@ -37,7 +37,7 @@ export async function render(el) {
   el.innerHTML = `<h1>Altın tahmin takibi</h1><div class="small muted">29 Ocak 2026 zirvesinden (${money(PEAK)}) sonraki 15 yıl. Tüm değerler zirveye göre yüzde değişimdir.</div>
     <div class="card" id="sum" style="margin-top:10px"><div class="spinner"></div></div>
     <div class="card" style="margin-top:12px"><div class="chips" id="rg"></div><div class="tiny muted" id="rgx"></div><div id="info" class="chart-info small"></div>
-      <div style="position:relative"><canvas class="chart" id="cv" height="360"></canvas><div id="gap" class="gapbox"></div></div>
+      <div style="position:relative"><canvas class="chart" id="cv" height="440"></canvas><div id="gap" class="gapbox"></div></div>
       <div class="small" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:14px">
         <span><b style="color:${C.act}">━</b> Gerçekleşen (7 Eki'ye kadar LBMA, sonrası CNBC spot)</span>
         <span><b style="color:${C.fc}">━</b> Güncellenmiş tahmin (7 Ekim'de gerçek fiyattan yeniden başlatıldı)</span>
@@ -80,7 +80,7 @@ export async function render(el) {
   rg.onclick = (e) => { const d = e.target.dataset.d; if (!d) return; span = +d; a = b = null; draw(); };
 
   function geom() {
-    const W = cv.clientWidth, H = 360, left = 46, right = W - 8, top = 10, bottom = H - 22;
+    const W = cv.clientWidth, H = W < 640 ? 360 : 440, left = 46, right = W - 8, top = W < 640 ? 10 : 100, bottom = H - 22;
     let start, end;
     if (span === -2) { start = PRE; end = N - 1; }
     else { start = PRE; end = Math.min(N - 1, span); }
