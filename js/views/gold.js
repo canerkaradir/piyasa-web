@@ -9,7 +9,7 @@ const money = (v) => Math.round(v).toLocaleString(TRL) + " $";
 const pts = (v) => (v > 0 ? "+" : "") + v.toLocaleString(TRL, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const dateOf = (d) => new Date(START + d * 86400_000);
 const fmtD = (d) => dateOf(d).toLocaleDateString(TRL, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-const PRE = Math.round((Date.UTC(2024, 0, 1) - Date.UTC(2026, 0, 29)) / 86400_000);
+const PRE = Math.round((Date.UTC(2025, 10, 20) - Date.UTC(2026, 0, 29)) / 86400_000);
 const C = { act: "#1f6feb", fc: "#d4a017", raw: "#9e9e9e", band: "#d4a01733" };
 
 async function loadModel() {
@@ -37,7 +37,7 @@ export async function render(el) {
   el.innerHTML = `<h1>Altın tahmin takibi</h1><div class="small muted">29 Ocak 2026 zirvesinden (${money(PEAK)}) sonraki 15 yıl. Tüm değerler zirveye göre yüzde değişimdir.</div>
     <div class="card" id="sum" style="margin-top:10px"><div class="spinner"></div></div>
     <div class="card" style="margin-top:12px"><div class="chips" id="rg"></div><div class="tiny muted" id="rgx"></div><div id="info" class="chart-info small"></div>
-      <div style="position:relative"><canvas class="chart" id="cv" height="440"></canvas><div id="gap" class="gapbox"></div></div>
+      <div style="position:relative"><canvas class="chart" id="cv" height="380"></canvas><div id="gap" class="gapbox"></div></div>
       <div class="small" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:14px">
         <span><b style="color:${C.act}">━</b> Gerçekleşen (7 Eki'ye kadar LBMA, sonrası CNBC spot)</span>
         <span><b style="color:${C.fc}">━</b> Güncellenmiş tahmin (7 Ekim'de gerçek fiyattan yeniden başlatıldı)</span>
@@ -58,9 +58,7 @@ export async function render(el) {
     const real = usd(act[lastDay]), tah = usd(md.fc[lastDay]), dif = tah - real, need = (real / tah - 1) * 100, above = dif > 0;
     const c = above ? "var(--down)" : "var(--up)";
     const gp = el.querySelector("#gap"); gp.style.borderColor = c;
-    gp.innerHTML = `<div class="tiny muted">Bugün tahmin ile gerçek farkı</div><div style="font-size:20px;font-weight:800;color:${c}">${money(Math.abs(dif))}</div>
-      <div class="tiny">${above ? "Tahmin gerçeğin üstünde" : "Tahmin gerçeğin altında"}</div>
-      <div class="small" style="font-weight:700;color:${c}">Tahminin gerçeğe ulaşması için %${Math.abs(need).toLocaleString("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} ${above ? "düşmesi" : "yükselmesi"} gerekir</div>`;
+    gp.innerHTML = `<div style="font-weight:800;color:${c}">${money(Math.abs(dif))}</div><div style="color:${c}">%${Math.abs(need).toLocaleString("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} ${above ? "düşüş" : "yükseliş"}</div>`;
   }
   // özet
   const la = act[lastDay], f = md.fc[lastDay], r = md.raw[lastDay], lo = md.lo[lastDay], hi = md.hi[lastDay];
@@ -80,7 +78,7 @@ export async function render(el) {
   rg.onclick = (e) => { const d = e.target.dataset.d; if (!d) return; span = +d; a = b = null; draw(); };
 
   function geom() {
-    const W = cv.clientWidth, H = W < 640 ? 360 : 440, left = 46, right = W - 8, top = W < 640 ? 10 : 100, bottom = H - 22;
+    const W = cv.clientWidth, H = 380, left = 46, right = W - 8, top = 44, bottom = H - 22;
     let start, end;
     if (span === -2) { start = PRE; end = N - 1; }
     else { start = PRE; end = Math.min(N - 1, span); }
@@ -98,7 +96,7 @@ export async function render(el) {
   }
   function draw() {
     rg.querySelectorAll(".chip").forEach((c) => c.classList.toggle("on", +c.dataset.d === span));
-    { const gg = geom(); el.querySelector("#rgx").textContent = `Süreler zirveden (29 Oca 2026) itibaren: zirve → ${fmtD(gg.end)}. Grafikte rallinin başladığı 2024 başı da görünür.`; }
+    { const gg = geom(); el.querySelector("#rgx").textContent = `Süreler zirveden (29 Oca 2026) itibaren: zirve → ${fmtD(gg.end)}. Grafik 20 Kas 2025'ten başlar.`; }
     const dpr = devicePixelRatio || 1, g = geom();
     cv.width = g.W * dpr; cv.height = g.H * dpr; cv.style.height = g.H + "px";
     const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, g.W, g.H);
