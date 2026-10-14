@@ -62,23 +62,29 @@ export async function render(el) {
       <div><div class="small" style="color:${C.raw}">İlk tahmin (formül)</div><b style="font-size:20px">${money(usd(r))}</b> <span class="small muted">(${pts(r)}%)</span></div></div>
     <div class="small" style="margin-top:8px">Fark: <b>${pts(diff)} puan</b> (${money(Math.abs(usd(la) - usd(f)))} ${diff < 0 ? "güncellenmiş tahminin altında" : "güncellenmiş tahminin üstünde"}). ${lo == null ? "" : inBand ? "Gerçek fiyat bandın içinde." : "Gerçek fiyat bandın dışında."}</div>`;
 
-  const RG = [[365, "1 yıl"], [730, "2 yıl"], [1096, "3 yıl"], [1461, "4 yıl"], [1826, "5 yıl"], [N - 1, "15 yıl"]];
-  let span = 730, a = null, b = null, hover = null;
+  const RG = [[183, "6 ay"], [274, "9 ay"], [365, "1 yıl"], [548, "1,5 yıl"], [730, "2 yıl"], [913, "2,5 yıl"], [1096, "3 yıl"],
+    [1461, "4 yıl"], [1826, "5 yıl"], [-1, "Zirveden beri"], [-2, "15 yıl"]];
+  let span = 365, a = null, b = null, hover = null;
   const rg = el.querySelector("#rg"), cv = el.querySelector("#cv"), info = el.querySelector("#info");
   rg.innerHTML = RG.map(([d, l]) => `<button class="chip" data-d="${d}">${l}</button>`).join("");
   rg.onclick = (e) => { const d = e.target.dataset.d; if (!d) return; span = +d; a = b = null; draw(); };
 
   function geom() {
     const W = cv.clientWidth, H = 360, left = 46, right = W - 8, top = 10, bottom = H - 22;
-    const end = Math.min(span, N - 1);
+    let start, end;
+    if (span === -2) { start = 0; end = N - 1; }
+    else if (span === -1) { start = 0; end = Math.min(N - 1, lastDay + 120); }
+    else { start = Math.max(0, lastDay - Math.max(30, Math.round(span / 8))); end = Math.min(N - 1, lastDay + span); }
+    const n = Math.max(1, end - start);
     let mn = Infinity, mx = -Infinity;
-    for (let i = 0; i <= end; i++) for (const v of [act[i], md.fc[i], md.raw[i], md.lo[i], md.hi[i]]) if (v != null) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
-    mn = Math.floor(mn / 10) * 10; mx = Math.ceil(mx / 10) * 10;
-    return { W, H, left, right, top, bottom, end, mn, mx, x: (i) => left + (i / end) * (right - left), y: (v) => bottom - ((v - mn) / (mx - mn || 1)) * (bottom - top) };
+    for (let i = start; i <= end; i++) for (const v of [act[i], md.fc[i], md.raw[i], md.lo[i], md.hi[i]]) if (v != null) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
+    const stp = mx - mn > 25 ? 10 : 5;
+    mn = Math.floor(mn / stp) * stp; mx = Math.ceil(mx / stp) * stp;
+    return { W, H, left, right, top, bottom, start, end, n, mn, mx, x: (i) => left + ((i - start) / n) * (right - left), y: (v) => bottom - ((v - mn) / (mx - mn || 1)) * (bottom - top) };
   }
   function line(ctx, g, arr, col, w, dash) {
     ctx.beginPath(); let s = false;
-    for (let i = 0; i <= g.end; i++) { const v = arr[i]; if (v == null) { s = false; continue; } if (!s) { ctx.moveTo(g.x(i), g.y(v)); s = true; } else ctx.lineTo(g.x(i), g.y(v)); }
+    for (let i = g.start; i <= g.end; i++) { const v = arr[i]; if (v == null) { s = false; continue; } if (!s) { ctx.moveTo(g.x(i), g.y(v)); s = true; } else ctx.lineTo(g.x(i), g.y(v)); }
     ctx.setLineDash(dash || []); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke(); ctx.setLineDash([]);
   }
   function draw() {
@@ -90,16 +96,17 @@ export async function render(el) {
     ctx.font = "11px system-ui"; ctx.fillStyle = css("--muted"); ctx.strokeStyle = css("--line");
     const stepV = (g.mx - g.mn) / 5;
     for (let k = 0; k <= 5; k++) { const v = g.mn + stepV * k, yy = g.y(v); ctx.beginPath(); ctx.moveTo(g.left, yy); ctx.lineTo(g.right, yy); ctx.stroke(); ctx.fillText(Math.round(v) + "%", 2, yy + 4); }
-    if (g.end > WEAK) { ctx.fillStyle = "#8882"; ctx.fillRect(g.x(WEAK), g.top, g.right - g.x(WEAK), g.bottom - g.top); ctx.fillStyle = css("--muted"); ctx.fillText("zayıf bölge", g.x(WEAK) + 6, g.top + 14); }
+    if (g.end > WEAK && g.start < WEAK) { ctx.fillStyle = "#8882"; ctx.fillRect(g.x(WEAK), g.top, g.right - g.x(WEAK), g.bottom - g.top); ctx.fillStyle = css("--muted"); ctx.fillText("zayıf bölge", g.x(WEAK) + 6, g.top + 14); }
     // bant
     ctx.beginPath(); let st = -1;
-    for (let i = 0; i <= g.end; i++) if (md.hi[i] != null) { if (st < 0) { st = i; ctx.moveTo(g.x(i), g.y(md.hi[i])); } else ctx.lineTo(g.x(i), g.y(md.hi[i])); }
+    for (let i = Math.max(g.start, 0); i <= g.end; i++) if (md.hi[i] != null) { if (st < 0) { st = i; ctx.moveTo(g.x(i), g.y(md.hi[i])); } else ctx.lineTo(g.x(i), g.y(md.hi[i])); }
     if (st >= 0) { for (let i = g.end; i >= st; i--) ctx.lineTo(g.x(i), g.y(md.lo[i])); ctx.closePath(); ctx.fillStyle = C.band; ctx.fill(); }
     line(ctx, g, md.raw, C.raw, 1.5, [5, 4]);
     line(ctx, g, md.fc, C.fc, 2.2);
     line(ctx, g, act, C.act, 2.2);
     ctx.fillStyle = css("--muted");
-    for (let k = 0; k <= 4; k++) { const d = Math.round((g.end * k) / 4), s = fmtD(d), w = ctx.measureText(s).width; ctx.fillText(s, Math.min(Math.max(g.x(d) - w / 2, g.left), g.right - w), g.H - 5); }
+    if (lastDay >= g.start && lastDay <= g.end) { ctx.save(); ctx.setLineDash([6, 5]); ctx.strokeStyle = "#1f6feb88"; ctx.beginPath(); ctx.moveTo(g.x(lastDay), g.top); ctx.lineTo(g.x(lastDay), g.bottom); ctx.stroke(); ctx.restore(); ctx.fillStyle = css("--muted"); ctx.fillText("bugün", g.x(lastDay) + 4, g.top + 12); }
+    for (let k = 0; k <= 4; k++) { const d = g.start + Math.round((g.n * k) / 4), s = fmtD(d), w = ctx.measureText(s).width; ctx.fillText(s, Math.min(Math.max(g.x(d) - w / 2, g.left), g.right - w), g.H - 5); }
     if (a != null && b != null) { const l = Math.min(g.x(a), g.x(b)), r = Math.max(g.x(a), g.x(b)); ctx.fillStyle = "#1f6feb18"; ctx.fillRect(l, g.top, r - l, g.bottom - g.top); }
     for (const i of [a, b, hover]) if (i != null) { ctx.strokeStyle = "#8888"; ctx.beginPath(); ctx.moveTo(g.x(i), g.top); ctx.lineTo(g.x(i), g.bottom); ctx.stroke(); }
     renderInfo();
@@ -118,7 +125,7 @@ export async function render(el) {
     else if (hover != null) info.innerHTML = `<div>${esc(at(hover))}</div><div class="tiny muted">Tıklayın: o günün değerleri. Basılı tutup sürükleyin: iki nokta arası yüzde değişim.</div>`;
     else info.innerHTML = `<div class="tiny muted">Tıklayın: o günün değerleri. Basılı tutup sürükleyin: iki nokta arası yüzde değişim.</div>`;
   }
-  const idx = (ev) => { const g = geom(), r = cv.getBoundingClientRect(); return Math.max(0, Math.min(g.end, Math.round(((ev.clientX - r.left - g.left) / (g.right - g.left)) * g.end))); };
+  const idx = (ev) => { const g = geom(), r = cv.getBoundingClientRect(); return Math.max(g.start, Math.min(g.end, g.start + Math.round(((ev.clientX - r.left - g.left) / (g.right - g.left)) * g.n))); };
   let down = null;
   cv.style.touchAction = "pan-y";
   cv.onpointerdown = (ev) => { down = { x: ev.clientX, i: idx(ev), moved: false }; };
