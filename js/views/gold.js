@@ -91,7 +91,7 @@ export async function render(el) {
   }
   function line(ctx, g, arr, col, w, dash) {
     ctx.beginPath(); let s = false;
-    for (let i = g.start; i <= g.end; i++) { const v = arr[i]; if (v == null) { s = false; continue; } if (!s) { ctx.moveTo(g.x(i), g.y(v)); s = true; } else ctx.lineTo(g.x(i), g.y(v)); }
+    for (let i = g.start; i <= g.end; i++) { const v = arr[i]; if (v == null) continue; if (!s) { ctx.moveTo(g.x(i), g.y(v)); s = true; } else ctx.lineTo(g.x(i), g.y(v)); }
     ctx.setLineDash(dash || []); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke(); ctx.setLineDash([]);
   }
   function draw() {
