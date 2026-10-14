@@ -211,3 +211,5 @@ a.chip { text-decoration: none; display: inline-block; }
 .cx.show { display: block; }
 .side a.hl { color: var(--gold); font-weight: 700; }
 @media (max-width: 640px) { .slide { padding: 16px; } .slide h1 { font-size: 22px; } .slide .body { font-size: 16px; } }
+.gapbox { position: absolute; top: 12px; right: 58px; background: var(--card); border: 2px solid var(--line); border-radius: 10px; padding: 6px 10px; text-align: right; max-width: 230px; box-shadow: 0 2px 8px #0002; }
+@media (max-width: 640px) { .gapbox { position: static; margin: 8px 0; max-width: none; } }
