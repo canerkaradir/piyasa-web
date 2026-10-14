@@ -35,7 +35,7 @@ async function liveCloses() {
 export async function render(el) {
   el.innerHTML = `<h1>Altın tahmin takibi</h1><div class="small muted">29 Ocak 2026 zirvesinden (${money(PEAK)}) sonraki 15 yıl. Tüm değerler zirveye göre yüzde değişimdir.</div>
     <div class="card" id="sum" style="margin-top:10px"><div class="spinner"></div></div>
-    <div class="card" style="margin-top:12px"><div class="chips" id="rg"></div><div id="info" class="chart-info small"></div>
+    <div class="card" style="margin-top:12px"><div class="chips" id="rg"></div><div class="tiny muted" id="rgx"></div><div id="info" class="chart-info small"></div>
       <canvas class="chart" id="cv" height="360"></canvas>
       <div class="small" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:14px">
         <span><b style="color:${C.act}">━</b> Gerçekleşen (7 Eki'ye kadar LBMA, sonrası CNBC spot)</span>
@@ -73,7 +73,7 @@ export async function render(el) {
     const W = cv.clientWidth, H = 360, left = 46, right = W - 8, top = 10, bottom = H - 22;
     let start, end;
     if (span === -2) { start = 0; end = N - 1; }
-    else { start = 0; end = Math.min(N - 1, lastDay + span); }
+    else { start = 0; end = Math.min(N - 1, span); }
     const n = Math.max(1, end - start);
     let mn = Infinity, mx = -Infinity;
     for (let i = start; i <= end; i++) for (const v of [act[i], md.fc[i], md.raw[i], md.lo[i], md.hi[i]]) if (v != null) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
@@ -88,6 +88,7 @@ export async function render(el) {
   }
   function draw() {
     rg.querySelectorAll(".chip").forEach((c) => c.classList.toggle("on", +c.dataset.d === span));
+    { const gg = geom(); el.querySelector("#rgx").textContent = `Zirveden (29 Oca 2026) itibaren: ${fmtD(gg.start)} → ${fmtD(gg.end)}`; }
     const dpr = devicePixelRatio || 1, g = geom();
     cv.width = g.W * dpr; cv.height = g.H * dpr; cv.style.height = g.H + "px";
     const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, g.W, g.H);
