@@ -1,4 +1,5 @@
-curl -sS -m 30 "https://ts-api.cnbc.com/harmony/app/bars/XAU%3D/1D/20231225000000/20260130000000/adjusted/EST5EDT.json" > /tmp/x.json
+curl -sS -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126" -m 30 "https://ts-api.cnbc.com/harmony/app/bars/XAU%3D/1D/20231225000000/20260130000000/adjusted/EST5EDT.json" > /tmp/x.json
+head -c 300 /tmp/x.json; echo
 python3 - <<'P'
 import json
 j=json.load(open('/tmp/x.json'))
