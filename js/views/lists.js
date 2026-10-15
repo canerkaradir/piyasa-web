@@ -6,6 +6,7 @@ import { disclaimer } from "../widgets.js";
 export const KINDS = {
   NASDAQ: ["Nasdaq", "Nasdaq borsasında işlem gören bütün şirketler, piyasa değerine göre. Teknoloji ağırlıklıdır.", "$"],
   SPX: ["S&P 500", "ABD'nin en büyük 500 şirketi. Dünyada en çok takip edilen endekstir; 'piyasa' denince çoğu zaman bu kastedilir.", "$"],
+  ALL: ["Tüm ABD şirketleri", "Nasdaq, New York Borsası (NYSE) ve NYSE American'da işlem gören bütün şirketler, piyasa değerine göre. Bir şirketi bulamadığınızda buradan arayın.", "$"],
   RUT: ["Russell 2000", "ABD'nin 2000 küçük ölçekli şirketi. Faiz indirimlerinden ve ABD iç ekonomisinden en çok etkilenen gruptur.", "$"],
   BIST30: ["BIST 30", "Borsa İstanbul'un en büyük ve en çok işlem gören 30 şirketi.", "₺"],
   BIST100: ["BIST 100", "Borsa İstanbul'un en büyük 100 şirketi. Diğer BIST şirketlerini üstteki arama kutusundan bulabilirsiniz.", "₺"],

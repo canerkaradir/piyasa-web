@@ -104,6 +104,8 @@ function scope(kind) {
   const body = { filter: [TYPE_FILTER] };
   if (kind === "NASDAQ") {
     body.filter.push({ left: "exchange", operation: "equal", right: "NASDAQ" }, { left: "is_primary", operation: "equal", right: true });
+  } else if (kind === "ALL") {
+    body.filter.push({ left: "exchange", operation: "in_range", right: ["NASDAQ", "NYSE", "AMEX"] }, { left: "is_primary", operation: "equal", right: true });
   } else if (kind === "BIST30" || kind === "BIST100") {
     body.symbols = { query: { types: [] }, tickers: [], groups: [{ type: "index", values: [kind === "BIST30" ? "BIST:XU030" : "BIST:XU100"] }] };
   } else {

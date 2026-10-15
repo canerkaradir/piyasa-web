@@ -6,7 +6,7 @@ import { leaveAll, go } from "./core.js";
 const MENU = [
   ["", "Ana ekran"], ["inceleme", "🔍 Şirket İnceleme"], ["haberler", "Haberler"], ["portfoy", "Portföyüm"],
   ["#Piyasalar"],
-  ["liste/NASDAQ", "Nasdaq"], ["liste/SPX", "S&P 500"], ["liste/RUT", "Russell 2000"], ["kripto", "Kripto"],
+  ["liste/NASDAQ", "Nasdaq"], ["liste/SPX", "S&P 500"], ["liste/RUT", "Russell 2000"], ["liste/ALL", "Tüm ABD şirketleri"], ["kripto", "Kripto"],
   ["liste/BIST100", "BIST 100"], ["emtia", "Emtia (altın, gümüş)"],
   ["#Keşfet"],
   ["bilancolar", "Bilançolar"], ["gelecek", "Gelecek vaat edenler"], ["isi", "Isı haritası"], ["hareketliler", "Yükselenler / düşenler"],
