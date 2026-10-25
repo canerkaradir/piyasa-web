@@ -54,11 +54,15 @@ export async function render(el) {
   try { const live = await liveCloses(); for (const [d, v] of Object.entries(live)) if (d < N) act[d] = v; } catch (e) { /* kayıtlı veri */ }
   let lastDay = 0; act.forEach((v, i) => { if (v != null) lastDay = i; });
 
-  {
-    const real = usd(act[lastDay]), tah = usd(md.fc[lastDay]), dif = tah - real, need = (real / tah - 1) * 100, above = dif > 0;
-    const c = above ? "var(--down)" : "var(--up)";
+  // Sağ üst kutu: dokunulan (yoksa bugünkü) noktada gerçek fiyat ile ilk tahmin (gri) arasındaki fark
+  // ve tahmine ulaşmak için gerçek fiyatın yüzde kaç yükselmesi/düşmesi gerektiği.
+  function gapBox(d) {
+    if (d == null || d < 0) d = lastDay;
+    const realV = act[d] != null && d <= lastDay ? act[d] : act[lastDay];
+    const real = usd(realV), tah = usd(md.raw[d]), dif = tah - real, need = (tah / real - 1) * 100, rise = dif >= 0;
+    const c = rise ? "var(--up)" : "var(--down)";
     const gp = el.querySelector("#gap"); gp.style.borderColor = c;
-    gp.innerHTML = `<div style="font-weight:800;color:${c}">${money(Math.abs(dif))}</div><div style="color:${c}">%${Math.abs(need).toLocaleString("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} ${above ? "düşüş" : "yükseliş"}</div>`;
+    gp.innerHTML = `<div style="font-weight:800;color:${c}">${money(Math.abs(dif))}</div><div style="color:${c}">%${Math.abs(need).toLocaleString("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} ${rise ? "yükseliş" : "düşüş"}</div>`;
   }
   // özet
   const la = act[lastDay], f = md.fc[lastDay], r = md.raw[lastDay], lo = md.lo[lastDay], hi = md.hi[lastDay];
@@ -119,6 +123,7 @@ export async function render(el) {
     if (a != null && b != null) { const l = Math.min(g.x(a), g.x(b)), r = Math.max(g.x(a), g.x(b)); ctx.fillStyle = "#1f6feb18"; ctx.fillRect(l, g.top, r - l, g.bottom - g.top); }
     for (const i of [a, b, hover]) if (i != null) { ctx.strokeStyle = "#8888"; ctx.beginPath(); ctx.moveTo(g.x(i), g.top); ctx.lineTo(g.x(i), g.bottom); ctx.stroke(); }
     renderInfo();
+    gapBox(b ?? a ?? hover);
   }
   function at(d) {
     const parts = [`${fmtD(d)} ` + (d >= 0 ? `(zirveden sonra ${d}. gün)` : `(zirveden ${-d} gün önce)`)];
