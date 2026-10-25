@@ -121,15 +121,20 @@ export async function render(el) {
     renderInfo();
   }
   function at(d) {
-    if (d < 0) return `${fmtD(d)} (zirveden ${-d} gün önce)` + (act[d] != null ? `: gerçek ${money(usd(act[d]))}` : "");
-    return `${fmtD(d)} (zirveden sonra ${d}. gün): tahmin ${money(usd(md.fc[d]))}` + (act[d] != null ? `, gerçek ${money(usd(act[d]))}` : "") + (md.lo[d] != null ? `, bant ${money(usd(md.lo[d]))}–${money(usd(md.hi[d]))}` : "");
+    const parts = [`${fmtD(d)} ` + (d >= 0 ? `(zirveden sonra ${d}. gün)` : `(zirveden ${-d} gün önce)`)];
+    if (act[d] != null) parts.push(`gerçek ${money(usd(act[d]))}`);
+    if (d >= 0) parts.push(`ilk tahmin (gri) ${money(usd(md.raw[d]))}`);
+    if (d >= ANCHOR) parts.push(`güncellenmiş tahmin (sarı) ${money(usd(md.fc[d]))}`);
+    if (d >= 0 && md.lo[d] != null) parts.push(`bant ${money(usd(md.lo[d]))}–${money(usd(md.hi[d]))}`);
+    return parts.join(" · ");
   }
   function renderInfo() {
     if (a != null && b != null) {
       const [p, q] = a <= b ? [a, b] : [b, a];
-      const fch = p >= 0 ? (usd(md.fc[q]) / usd(md.fc[p]) - 1) * 100 : null;
+      const fch = p >= ANCHOR ? (usd(md.fc[q]) / usd(md.fc[p]) - 1) * 100 : null;
+      const rch = p >= 0 ? (usd(md.raw[q]) / usd(md.raw[p]) - 1) * 100 : null;
       const g = act[p] != null && act[q] != null ? (usd(act[q]) / usd(act[p]) - 1) * 100 : null;
-      info.innerHTML = `<div>${fmtD(p)} → ${fmtD(q)}</div>${fch != null ? `<div>Tahmine göre değişim: <b>${pct(fch)}</b> (${money(usd(md.fc[p]))} → ${money(usd(md.fc[q]))})</div>` : ""}
+      info.innerHTML = `<div>${fmtD(p)} → ${fmtD(q)}</div>${rch != null ? `<div>İlk tahmine göre (gri): <b>${pct(rch)}</b> (${money(usd(md.raw[p]))} → ${money(usd(md.raw[q]))})</div>` : ""}${fch != null ? `<div>Güncellenmiş tahmine göre (sarı): <b>${pct(fch)}</b> (${money(usd(md.fc[p]))} → ${money(usd(md.fc[q]))})</div>` : ""}
         ${g != null ? `<div>Gerçekleşen değişim: <b class="${g >= 0 ? "up" : "down"}">${pct(g)}</b> (${money(usd(act[p]))} → ${money(usd(act[q]))})</div>` : ""}<div class="tiny muted">Fiyat için tıklayın; yeni ölçüm için basılı tutup sürükleyin.</div>`;
     } else if (a != null) info.innerHTML = `<div>${esc(at(a))}</div><div class="tiny muted">İki nokta arasını ölçmek için basılı tutup sürükleyin.</div>`;
     else if (hover != null) info.innerHTML = `<div>${esc(at(hover))}</div><div class="tiny muted">Tıklayın: o günün değerleri. Basılı tutup sürükleyin: iki nokta arası yüzde değişim.</div>`;
