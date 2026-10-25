@@ -10,7 +10,7 @@ const pts = (v) => (v > 0 ? "+" : "") + v.toLocaleString(TRL, { minimumFractionD
 const dateOf = (d) => new Date(START + d * 86400_000);
 const fmtD = (d) => dateOf(d).toLocaleDateString(TRL, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 const PRE = Math.round((Date.UTC(2025, 10, 20) - Date.UTC(2026, 0, 29)) / 86400_000);
-const C = { act: "#1f6feb", fc: "#d4a017", raw: "#9e9e9e", band: "#d4a01733" };
+const C = { act: "#1f6feb", raw: "#c9940a" };
 
 async function loadModel() {
   const t = await (await fetch("data/altin.csv")).text();
@@ -39,13 +39,10 @@ export async function render(el) {
     <div class="card" style="margin-top:12px"><div class="chips" id="rg"></div><div class="tiny muted" id="rgx"></div><div id="info" class="chart-info small"></div>
       <div style="position:relative"><canvas class="chart" id="cv" height="380"></canvas><div id="gap" class="gapbox"></div></div>
       <div class="small" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:14px">
-        <span><b style="color:${C.act}">━</b> Gerçekleşen (7 Eki'ye kadar LBMA, sonrası CNBC spot)</span>
-        <span><b style="color:${C.fc}">━</b> Güncellenmiş tahmin (7 Ekim'de gerçek fiyattan yeniden başlatıldı)</span>
-        <span><b style="color:${C.fc};opacity:.5">▇</b> Bant: ±7,3 puan (≈ ±400 $)</span>
-        <span><b style="color:${C.raw}">┅</b> İlk tahmin: formülün gerçek fiyatı hiç görmeden çizdiği yol</span></div></div>
+        <span><b style="color:${C.act}">━</b> Gerçek fiyat (7 Eki'ye kadar LBMA, sonrası CNBC spot)</span>
+        <span><b style="color:${C.raw}">━</b> Tahmin: formülümüzün 1980 ve 2011 altın hareketlerinden çizdiği yol</span></div></div>
     <div class="grid g2" style="margin-top:12px">
-      <div class="card small"><b>İki tahmin ne demek?</b><br>İlk tahmin, formülün sadece 1980 ve 2011 altın hareketlerine bakarak çizdiği yoldur. 7 Ekim'de gerçek fiyat bu yolun epey altındaydı; güncellenmiş tahmin o gün gerçek fiyattan yeniden başlatıldı ve aradaki fark yaklaşık 2 yılda kapanarak formülün yoluna döner. GPS gibi: ilk rota ve bulunduğunuz yerden yeniden hesaplanan rota.</div>
-      <div class="card small"><b>Bu tahmini okurken</b><br>• Formül yalnızca iki geçmiş örneğe dayanıyor (1980 ve 2011 zirveleri).<br>• Dalgaların zamanlaması güvenilmez; sadece genel seviyeye ve yöne bakın.<br>• 2036 sonrası (13.–15. yıl) döngüsel olduğu için zayıf; grafikte taralı.<br>• 730 günlük sönüm ve 181 günlük düzleştirme veriden değil, seçimle belirlendi.<br>• Formül faiz, dolar ve merkez bankası alımlarını bilmez.<br>• Bu bir öğrenme aracıdır, al/sat tavsiyesi değildir.</div>
+      <div class="card small"><b>Bu tahmini okurken</b><br>• Formül yalnızca iki geçmiş örneğe dayanıyor (1980 ve 2011 zirveleri).<br>• Dalgaların zamanlaması güvenilmez; sadece genel seviyeye ve yöne bakın.<br>• 2036 sonrası (13.–15. yıl) döngüsel olduğu için zayıf; grafikte taralı.<br>• Formül faiz, dolar ve merkez bankası alımlarını bilmez.<br>• Bu bir öğrenme aracıdır, al/sat tavsiyesi değildir.</div>
     </div>${disclaimer("LBMA, CNBC")}`;
   const md = await loadModel();
   const N = md.fc.length;
@@ -54,25 +51,24 @@ export async function render(el) {
   try { const live = await liveCloses(); for (const [d, v] of Object.entries(live)) if (d < N) act[d] = v; } catch (e) { /* kayıtlı veri */ }
   let lastDay = 0; act.forEach((v, i) => { if (v != null) lastDay = i; });
 
-  // Sağ üst kutu: dokunulan (yoksa bugünkü) noktada gerçek fiyat ile ilk tahmin (gri) arasındaki fark
-  // ve tahmine ulaşmak için gerçek fiyatın yüzde kaç yükselmesi/düşmesi gerektiği.
+  // Sağ üst kutu: dokunulan (yoksa bugünkü) noktada tahminin gerçek fiyata ulaşması için gereken değişim.
+  const need = (real, tah) => { const dif = real - tah; return { dif, p: (real / tah - 1) * 100, rise: dif >= 0 }; };
+  const p1 = (v) => Math.abs(v).toLocaleString("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
   function gapBox(d) {
     if (d == null || d < 0) d = lastDay;
     const realV = act[d] != null && d <= lastDay ? act[d] : act[lastDay];
-    const real = usd(realV), tah = usd(md.raw[d]), dif = tah - real, need = (tah / real - 1) * 100, rise = dif >= 0;
-    const c = rise ? "var(--up)" : "var(--down)";
+    const n = need(usd(realV), usd(md.raw[d]));
+    const c = n.rise ? "var(--up)" : "var(--down)";
     const gp = el.querySelector("#gap"); gp.style.borderColor = c;
-    gp.innerHTML = `<div style="font-weight:800;color:${c}">${money(Math.abs(dif))}</div><div style="color:${c}">%${Math.abs(need).toLocaleString("tr-TR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} ${rise ? "yükseliş" : "düşüş"}</div>`;
+    gp.innerHTML = `<div style="font-weight:800;color:${c}">${money(Math.abs(n.dif))}</div><div style="color:${c}">%${p1(n.p)} ${n.rise ? "yükseliş" : "düşüş"}</div>`;
   }
   // özet
-  const la = act[lastDay], f = md.fc[lastDay], r = md.raw[lastDay], lo = md.lo[lastDay], hi = md.hi[lastDay];
-  const diff = la - f, inBand = lo != null && la >= lo && la <= hi;
+  const la = act[lastDay], r = md.raw[lastDay], ns = need(usd(la), usd(r));
   el.querySelector("#sum").innerHTML = `<div class="small muted">Zirveden sonra ${lastDay}. gün · ${fmtD(lastDay)}</div>
-    <div class="grid g3" style="margin-top:6px">
-      <div><div class="small" style="color:${C.act}">Gerçekleşen</div><b style="font-size:20px">${money(usd(la))}</b> <span class="small muted">(${pts(la)}%)</span></div>
-      <div><div class="small" style="color:${C.fc}">Güncellenmiş tahmin</div><b style="font-size:20px">${money(usd(f))}</b> <span class="small muted">(${pts(f)}%)</span></div>
-      <div><div class="small" style="color:${C.raw}">İlk tahmin (formül)</div><b style="font-size:20px">${money(usd(r))}</b> <span class="small muted">(${pts(r)}%)</span></div></div>
-    <div class="small" style="margin-top:8px">Fark: <b>${pts(diff)} puan</b> (${money(Math.abs(usd(la) - usd(f)))} ${diff < 0 ? "güncellenmiş tahminin altında" : "güncellenmiş tahminin üstünde"}). ${lo == null ? "" : inBand ? "Gerçek fiyat bandın içinde." : "Gerçek fiyat bandın dışında."}</div>`;
+    <div class="grid g2" style="margin-top:6px">
+      <div><div class="small" style="color:${C.act}">Gerçek fiyat</div><b style="font-size:20px">${money(usd(la))}</b></div>
+      <div><div class="small" style="color:${C.raw}">Tahmin</div><b style="font-size:20px">${money(usd(r))}</b></div></div>
+    <div class="small" style="margin-top:8px">Tahminin gerçek fiyata ulaşması için <b>%${p1(ns.p)} ${ns.rise ? "yükselmesi" : "düşmesi"}</b> gerekir (${money(Math.abs(ns.dif))}).</div>`;
 
   const RG = [[183, "6 ay"], [274, "9 ay"], [365, "1 yıl"], [548, "1,5 yıl"], [730, "2 yıl"], [913, "2,5 yıl"], [1096, "3 yıl"],
     [1461, "4 yıl"], [1826, "5 yıl"], [-2, "15 yıl"]];
@@ -88,7 +84,7 @@ export async function render(el) {
     else { start = PRE; end = Math.min(N - 1, span); }
     const n = Math.max(1, end - start);
     let mn = Infinity, mx = -Infinity;
-    for (let i = start; i <= end; i++) for (const v of [act[i], md.fc[i], md.raw[i], md.lo[i], md.hi[i]]) if (v != null) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
+    for (let i = start; i <= end; i++) for (const v of [act[i], md.raw[i]]) if (v != null) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
     const stp = mx - mn > 25 ? 10 : 5;
     mn = Math.floor(mn / stp) * stp; mx = Math.ceil(mx / stp) * stp;
     return { W, H, left, right, top, bottom, start, end, n, mn, mx, x: (i) => left + ((i - start) / n) * (right - left), y: (v) => bottom - ((v - mn) / (mx - mn || 1)) * (bottom - top) };
@@ -109,13 +105,8 @@ export async function render(el) {
     const stepV = (g.mx - g.mn) / 5;
     for (let k = 0; k <= 5; k++) { const v = g.mn + stepV * k, yy = g.y(v); ctx.beginPath(); ctx.moveTo(g.left, yy); ctx.lineTo(g.right, yy); ctx.stroke(); ctx.fillText(Math.round(v) + "%", 2, yy + 4); }
     if (g.end > WEAK && g.start < WEAK) { ctx.fillStyle = "#8882"; ctx.fillRect(g.x(WEAK), g.top, g.right - g.x(WEAK), g.bottom - g.top); ctx.fillStyle = css("--muted"); ctx.fillText("zayıf bölge", g.x(WEAK) + 6, g.top + 14); }
-    // bant
-    ctx.beginPath(); let st = -1;
-    for (let i = Math.max(g.start, 0); i <= g.end; i++) if (md.hi[i] != null) { if (st < 0) { st = i; ctx.moveTo(g.x(i), g.y(md.hi[i])); } else ctx.lineTo(g.x(i), g.y(md.hi[i])); }
-    if (st >= 0) { for (let i = g.end; i >= st; i--) ctx.lineTo(g.x(i), g.y(md.lo[i])); ctx.closePath(); ctx.fillStyle = C.band; ctx.fill(); }
-    line(ctx, g, md.raw, C.raw, 1.5, [5, 4]);
+    line(ctx, g, md.raw, C.raw, 2.2);
     if (g.start < 0) { ctx.save(); ctx.setLineDash([5, 5]); ctx.strokeStyle = "#b8860b99"; ctx.beginPath(); ctx.moveTo(g.x(0), g.top); ctx.lineTo(g.x(0), g.bottom); ctx.stroke(); ctx.restore(); ctx.fillStyle = css("--muted"); ctx.fillText("zirve 29 Oca 26", g.x(0) + 4, g.top + 26); }
-    line(ctx, g, md.fc, C.fc, 2.2);
     line(ctx, g, act, C.act, 2.2);
     ctx.fillStyle = css("--muted");
     if (lastDay >= g.start && lastDay <= g.end) { ctx.save(); ctx.setLineDash([6, 5]); ctx.strokeStyle = "#1f6feb88"; ctx.beginPath(); ctx.moveTo(g.x(lastDay), g.top); ctx.lineTo(g.x(lastDay), g.bottom); ctx.stroke(); ctx.restore(); ctx.fillStyle = css("--muted"); ctx.fillText("bugün", g.x(lastDay) + 4, g.top + 12); }
@@ -128,18 +119,15 @@ export async function render(el) {
   function at(d) {
     const parts = [`${fmtD(d)} ` + (d >= 0 ? `(zirveden sonra ${d}. gün)` : `(zirveden ${-d} gün önce)`)];
     if (act[d] != null) parts.push(`gerçek ${money(usd(act[d]))}`);
-    if (d >= 0) parts.push(`ilk tahmin (gri) ${money(usd(md.raw[d]))}`);
-    if (d >= ANCHOR) parts.push(`güncellenmiş tahmin (sarı) ${money(usd(md.fc[d]))}`);
-    if (d >= 0 && md.lo[d] != null) parts.push(`bant ${money(usd(md.lo[d]))}–${money(usd(md.hi[d]))}`);
+    if (d >= 0) parts.push(`tahmin ${money(usd(md.raw[d]))}`);
     return parts.join(" · ");
   }
   function renderInfo() {
     if (a != null && b != null) {
       const [p, q] = a <= b ? [a, b] : [b, a];
-      const fch = p >= ANCHOR ? (usd(md.fc[q]) / usd(md.fc[p]) - 1) * 100 : null;
       const rch = p >= 0 ? (usd(md.raw[q]) / usd(md.raw[p]) - 1) * 100 : null;
       const g = act[p] != null && act[q] != null ? (usd(act[q]) / usd(act[p]) - 1) * 100 : null;
-      info.innerHTML = `<div>${fmtD(p)} → ${fmtD(q)}</div>${rch != null ? `<div>İlk tahmine göre (gri): <b>${pct(rch)}</b> (${money(usd(md.raw[p]))} → ${money(usd(md.raw[q]))})</div>` : ""}${fch != null ? `<div>Güncellenmiş tahmine göre (sarı): <b>${pct(fch)}</b> (${money(usd(md.fc[p]))} → ${money(usd(md.fc[q]))})</div>` : ""}
+      info.innerHTML = `<div>${fmtD(p)} → ${fmtD(q)}</div>${rch != null ? `<div>Tahmine göre: <b>${pct(rch)}</b> (${money(usd(md.raw[p]))} → ${money(usd(md.raw[q]))})</div>` : ""}
         ${g != null ? `<div>Gerçekleşen değişim: <b class="${g >= 0 ? "up" : "down"}">${pct(g)}</b> (${money(usd(act[p]))} → ${money(usd(act[q]))})</div>` : ""}<div class="tiny muted">Fiyat için tıklayın; yeni ölçüm için basılı tutup sürükleyin.</div>`;
     } else if (a != null) info.innerHTML = `<div>${esc(at(a))}</div><div class="tiny muted">İki nokta arasını ölçmek için basılı tutup sürükleyin.</div>`;
     else if (hover != null) info.innerHTML = `<div>${esc(at(hover))}</div><div class="tiny muted">Tıklayın: o günün değerleri. Basılı tutup sürükleyin: iki nokta arası yüzde değişim.</div>`;
