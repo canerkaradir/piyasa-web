@@ -1,0 +1,6 @@
+/home/runner/work/piyasa-web/piyasa-web/scripts/fetch_data.py:383: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+  start = datetime.utcfromtimestamp(existing[-1][0] / 1000) - timedelta(days=10)
+içeriden: taranan 890 alım 29
+OK içeriden alımlar
+OK beklenti tabloları
+OK BIST geçmişi
