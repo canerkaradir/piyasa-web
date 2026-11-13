@@ -1,0 +1,43 @@
+== https://stooq.com/q/d/l/?s=xauusd&i=d
+200 796
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript to verify your browser. Please enable JavaScript and reload.</noscript><script nonce="1beSL-cKKeYHHIg6eYVE8g">
+(async()=>{const c="AAAAAGr3F1-1SyKiaYp2
+(async()=>{const c="AAAAAGr3F1-1SyKiaYp2pBA0Hlx3PmC7KEuHNJ6pg1Sqrj6IDdX_dRTJDL8",d=4,t="0".repeat(d),e=new TextEncoder;let n=0;while(1){const h=await crypto.subtle.digest("SHA-256",e.encode(c+n)),x=Ar
+== https://stooq.com/q/d/l/?s=xagusd&i=d
+200 796
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript to verify your browser. Please enable JavaScript and reload.</noscript><script nonce="SsJ41roLIVcoGqlMmBlIwQ">
+(async()=>{const c="AAAAAGr3F18jNXvG2-Ih
+(async()=>{const c="AAAAAGr3F18jNXvG2-IhXIRu9FfcKIL8KEuHNAa3V-a--6Tlb66uLv5N2oE",d=4,t="0".repeat(d),e=new TextEncoder;let n=0;while(1){const h=await crypto.subtle.digest("SHA-256",e.encode(c+n)),x=Ar
+== https://raw.githubusercontent.com/datasets/gold-prices/main/data/monthly.csv
+200 35747
+Date,Price
+1833-01,18.930
+1833-02,18.930
+1833-03,18.930
+1833-04,18.930
+1833-05,18.930
+1833-06,18.930
+1833-07,18.930
+1833-08,18.930
+1833-09,18.930
+1833-10,18.930
+1833-11,18.930
+1833-12,18.930
+1834-01,18.930
+1834-02,18.930
+1834-03,18.930
+1834-04,18.930
+1834-05,18.930
+1834-06,18.930
+1834-07,18.930
+1834
+1980-01,675.000
+2026-09,4319.000
+2026-10,4105.000
+
+== https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?period1=0&period2=9999999999&interval=1d
+429 19
+Too Many Requests
+
+Too Many Requests
+
