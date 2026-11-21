@@ -1,0 +1,4 @@
+içeriden: taranan 890 alım 107
+OK içeriden alımlar
+OK beklenti tabloları
+OK BIST geçmişi
